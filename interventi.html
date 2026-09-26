@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interventi · fotovroby</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>fotovroby</h1>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="scadenziario.html">Scadenziario</a>
+    <a href="interventi.html" class="active">Interventi</a>
+    <a href="impianti.html">Impianti</a>
+    <a href="clienti.html">Clienti</a>
+    <span class="user-info" id="user-nome"></span>
+    <button onclick="logout()">Esci</button>
+  </nav>
+</header>
+
+<main>
+  <div id="loading" class="loading">Caricamento...</div>
+  <div id="content" style="display:none">
+
+    <!-- KPI riassuntivi -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="label">Programmati</div>
+        <div class="value" id="kpi-prog">–</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Eseguiti (mese)</div>
+        <div class="value" id="kpi-mese">–</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Eseguiti (anno)</div>
+        <div class="value" id="kpi-anno">–</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Ore lavorate (anno)</div>
+        <div class="value" id="kpi-ore">–</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Costo materiali (anno)</div>
+        <div class="value" id="kpi-costo">– €</div>
+      </div>
+      <div class="kpi rosso">
+        <div class="label">Anomalie da risolvere</div>
+        <div class="value" id="kpi-anomalie">–</div>
+      </div>
+    </div>
+
+    <!-- Filtri + nuovo -->
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn-primary" onclick="apriNuovo('straordinario')">+ Straordinario</button>
+        <button class="btn-danger" onclick="apriNuovo('guasto')">+ Guasto</button>
+        <div class="filtri" style="flex:1">
+          <div class="filtro">
+            <label>Tipo</label>
+            <select id="f-tipo">
+              <option value="">Tutti</option>
+              <option value="ordinario">Ordinario</option>
+              <option value="straordinario">Straordinario</option>
+              <option value="guasto">Guasto</option>
+            </select>
+          </div>
+          <div class="filtro">
+            <label>Stato</label>
+            <select id="f-stato">
+              <option value="">Tutti</option>
+              <option value="programmato">Programmato</option>
+              <option value="eseguito">Eseguito</option>
+              <option value="annullato">Annullato</option>
+            </select>
+          </div>
+          <div class="filtro">
+            <label>Esito</label>
+            <select id="f-esito">
+              <option value="">Tutti</option>
+              <option value="ok">OK</option>
+              <option value="ok_con_note">OK con note</option>
+              <option value="anomalia">Anomalia</option>
+              <option value="da_ripetere">Da ripetere</option>
+            </select>
+          </div>
+          <div class="filtro">
+            <label>Cliente</label>
+            <select id="f-cliente"><option value="">Tutti</option></select>
+          </div>
+          <div class="filtro">
+            <label>Da</label>
+            <input type="date" id="f-dal">
+          </div>
+          <div class="filtro">
+            <label>A</label>
+            <input type="date" id="f-al">
+          </div>
+          <div class="filtro">
+            <label>Cerca</label>
+            <input type="text" id="f-testo" placeholder="Impianto, tecnico, descrizione...">
+          </div>
+          <div class="filtro">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" onclick="resetFiltri()">Azzera</button>
+          </div>
+        </div>
+        <div class="tot-info">Totale: <b id="cnt-tot">0</b></div>
+      </div>
+    </div>
+
+    <!-- Tabella interventi -->
+    <div class="card">
+      <div class="table-wrap">
+        <table class="tab-scadenze">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Impianto</th>
+              <th>Cliente</th>
+              <th>Descrizione</th>
+              <th>Tecnico</th>
+              <th>Ore</th>
+              <th>Materiali</th>
+              <th>Stato</th>
+              <th>Esito</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="tab-body">
+            <tr><td colspan="11" class="loading">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Modale intervento -->
+<div class="modal" id="modal-int">
+  <div class="modal-content modal-lg">
+    <h2 id="mi-titolo">Nuovo intervento</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Impianto *</label>
+        <select id="mi-impianto" required></select>
+      </div>
+      <div class="form-group">
+        <label>Tipo *</label>
+        <select id="mi-tipo">
+          <option value="ordinario">Ordinario</option>
+          <option value="straordinario">Straordinario</option>
+          <option value="guasto">Guasto</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data *</label>
+        <input type="date" id="mi-data" required>
+      </div>
+      <div class="form-group">
+        <label>Stato</label>
+        <select id="mi-stato">
+          <option value="programmato">Programmato</option>
+          <option value="eseguito">Eseguito</option>
+          <option value="annullato">Annullato</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Descrizione *</label>
+      <textarea id="mi-descrizione" rows="3" placeholder="Cosa è stato fatto o va fatto"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tecnico</label>
+        <input type="text" id="mi-tecnico">
+      </div>
+      <div class="form-group">
+        <label>Ore lavorate</label>
+        <input type="number" id="mi-ore" step="0.5" min="0" value="0">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Costo materiali (€)</label>
+        <input type="number" id="mi-costo" step="0.01" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>Esito (se eseguito)</label>
+        <select id="mi-esito">
+          <option value="">–</option>
+          <option value="ok">OK</option>
+          <option value="ok_con_note">OK con note</option>
+          <option value="anomalia">Anomalia rilevata</option>
+          <option value="da_ripetere">Da ripetere</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="mi-note" rows="2"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-danger" id="mi-elimina" onclick="eliminaIntervento()" style="margin-right:auto;display:none">Elimina</button>
+      <button class="btn-secondary" onclick="chiudiModal('modal-int')">Annulla</button>
+      <button class="btn-primary" onclick="salvaIntervento()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/interventi.js"></script>
+</body>
+</html>

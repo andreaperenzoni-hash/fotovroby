@@ -507,3 +507,7 @@ a:hover { text-decoration: underline; }
   margin: 8px 0 12px;
   flex-wrap: wrap;
 }
+
+/* Interventi ------------------------------------------------------- */
+.chip-danger { background: var(--rosso-bg); color: var(--rosso); }
+.col-desc { max-width: 300px; }
