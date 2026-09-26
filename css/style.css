@@ -415,3 +415,95 @@ main { max-width: 1400px; margin: 0 auto; padding: 24px; }
   font-size: 14px;
   background: white;
 }
+
+/* Impianti e Clienti ----------------------------------------------- */
+.toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.toolbar .filtri { margin: 0; }
+.tot-info {
+  font-size: 14px;
+  color: var(--text-muted);
+  padding: 8px 0;
+}
+.tot-info b { color: var(--text); font-size: 18px; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+.modal-lg { max-width: 720px; }
+
+.fascia-preview {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f8fafc;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+.fascia-f1 { background: var(--verde-bg); color: var(--verde); border-color: var(--verde); }
+.fascia-f2 { background: var(--giallo-bg); color: var(--giallo); border-color: var(--giallo); }
+.fascia-f3 { background: var(--rosso-bg); color: var(--rosso); border-color: var(--rosso); }
+
+.chip-success { background: var(--verde-bg); color: var(--verde); }
+.chip-warn { background: var(--giallo-bg); color: var(--giallo); }
+
+.btn-danger {
+  background: white;
+  color: var(--rosso);
+  border: 1px solid var(--rosso);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+.btn-danger:hover { background: var(--rosso-bg); }
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--primary-dark);
+  margin: 16px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.tab-scadenze.compact tbody td { padding: 8px; font-size: 13px; }
+.tab-scadenze.compact thead th { padding: 6px 8px; font-size: 11px; }
+
+.info-box {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin: 12px 0;
+}
+.info-box ul { margin: 6px 0 0 20px; }
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.quick-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0 12px;
+  flex-wrap: wrap;
+}

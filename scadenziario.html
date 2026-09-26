@@ -160,6 +160,47 @@
   </div>
 </div>
 
+<!-- Modale modifica/rimanda scadenza -->
+<div class="modal" id="modal-edit-scad">
+  <div class="modal-content">
+    <h2>Modifica scadenza</h2>
+    <div id="mes-info" class="modal-info"></div>
+    <div class="form-group">
+      <label>Data scadenza</label>
+      <input type="date" id="mes-data">
+    </div>
+    <div class="quick-actions">
+      <span class="text-muted">Rimanda di:</span>
+      <button class="btn-secondary btn-sm" onclick="rimanda(7)">+7 gg</button>
+      <button class="btn-secondary btn-sm" onclick="rimanda(30)">+30 gg</button>
+      <button class="btn-secondary btn-sm" onclick="rimanda(90)">+3 mesi</button>
+      <button class="btn-secondary btn-sm" onclick="rimanda(365)">+1 anno</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Giorni preavviso</label>
+        <input type="number" id="mes-preavviso" min="1">
+      </div>
+      <div class="form-group">
+        <label>Stato</label>
+        <select id="mes-stato">
+          <option value="aperta">Aperta</option>
+          <option value="pianificata">Pianificata</option>
+          <option value="annullata">Annullata</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="mes-note" rows="2" placeholder="Motivo del rimando..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="chiudiModal('modal-edit-scad')">Annulla</button>
+      <button class="btn-primary" onclick="confermaModificaScad()">Salva</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script src="js/auth.js"></script>

@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clienti · fotovroby</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -17,12 +18,116 @@
     <button onclick="logout()">Esci</button>
   </nav>
 </header>
+
 <main>
-  <div class="card"><h2>Clienti</h2><p>In lavorazione. Prossimo step.</p></div>
+  <div id="loading" class="loading">Caricamento...</div>
+  <div id="content" style="display:none">
+
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn-primary" onclick="apriNuovo()">+ Nuovo cliente</button>
+        <div class="filtri" style="flex:1">
+          <div class="filtro">
+            <label>Tipo</label>
+            <select id="f-tipo">
+              <option value="">Tutti</option>
+              <option value="privato">Privato</option>
+              <option value="azienda">Azienda</option>
+              <option value="condominio">Condominio</option>
+              <option value="pa">Pubblica Amm.</option>
+            </select>
+          </div>
+          <div class="filtro">
+            <label>Cerca</label>
+            <input type="text" id="f-testo" placeholder="Nome, email, comune...">
+          </div>
+        </div>
+        <div class="tot-info">Totale: <b id="cnt-tot">0</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="tab-scadenze">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Email</th>
+              <th>Telefono</th>
+              <th>Comune</th>
+              <th>Impianti</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="tab-body">
+            <tr><td colspan="7" class="loading">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </main>
+
+<!-- Modale nuovo/modifica cliente -->
+<div class="modal" id="modal-cliente">
+  <div class="modal-content">
+    <h2 id="mc-titolo">Nuovo cliente</h2>
+    <div class="form-group">
+      <label>Nome / Ragione sociale *</label>
+      <input type="text" id="mc-nome" required>
+    </div>
+    <div class="form-group">
+      <label>Tipo *</label>
+      <select id="mc-tipo" required>
+        <option value="privato">Privato</option>
+        <option value="azienda">Azienda</option>
+        <option value="condominio">Condominio</option>
+        <option value="pa">Pubblica Amministrazione</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="mc-email">
+      </div>
+      <div class="form-group">
+        <label>Telefono</label>
+        <input type="text" id="mc-telefono">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Comune</label>
+        <input type="text" id="mc-comune">
+      </div>
+      <div class="form-group">
+        <label>CF / P.IVA</label>
+        <input type="text" id="mc-cfpiva">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Indirizzo</label>
+      <input type="text" id="mc-indirizzo">
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="mc-note" rows="2"></textarea>
+    </div>
+    <div class="form-group">
+      <label><input type="checkbox" id="mc-attivo" checked> Cliente attivo</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="mc-elimina" onclick="eliminaCliente()" style="margin-right:auto;display:none">Elimina</button>
+      <button class="btn-secondary" onclick="chiudiModal('modal-cliente')">Annulla</button>
+      <button class="btn-primary" onclick="salvaCliente()">Salva</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script src="js/auth.js"></script>
-<script>requireAuth();</script>
+<script src="js/clienti.js"></script>
 </body>
 </html>

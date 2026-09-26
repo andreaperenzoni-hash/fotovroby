@@ -82,7 +82,8 @@ function render() {
   tbody.innerHTML = filtrate.map(s => {
     const azioni = s.fonte === 'regola'
       ? `<button class="btn-icon" onclick='apriPianifica(${JSON.stringify(s)})' title="Pianifica">📅</button>
-         <button class="btn-icon" onclick='apriEseguito(${JSON.stringify(s)})' title="Segna eseguito">✔</button>`
+         <button class="btn-icon" onclick='apriEseguito(${JSON.stringify(s)})' title="Segna eseguito">✔</button>
+         <button class="btn-icon" onclick='apriModificaScadenza(${JSON.stringify(s)})' title="Modifica">✎</button>`
       : `<span class="text-muted">–</span>`;
     return `
       <tr>
@@ -201,6 +202,45 @@ async function confermaEseguito() {
   await caricaScadenze();
 }
 
+// MODIFICA / RIMANDA SCADENZA -------------------------------------
+let scadEditCorrente = null;
+
+function apriModificaScadenza(s) {
+  scadEditCorrente = s;
+  document.getElementById('mes-info').innerHTML = `
+    <div><b>${escapeHtml(s.impianto)}</b> · ${escapeHtml(s.cliente)}</div>
+    <div class="text-muted">${escapeHtml(s.descrizione)}</div>
+  `;
+  document.getElementById('mes-data').value = s.data_scadenza;
+  document.getElementById('mes-preavviso').value = s.giorni_preavviso;
+  document.getElementById('mes-stato').value = s.stato;
+  document.getElementById('mes-note').value = '';
+  apriModal('modal-edit-scad');
+}
+
+function rimanda(giorni) {
+  const el = document.getElementById('mes-data');
+  const d = new Date(el.value || new Date());
+  d.setDate(d.getDate() + giorni);
+  el.value = d.toISOString().slice(0, 10);
+}
+
+async function confermaModificaScad() {
+  const payload = {
+    data_scadenza: document.getElementById('mes-data').value,
+    giorni_preavviso: parseInt(document.getElementById('mes-preavviso').value) || 30,
+    stato: document.getElementById('mes-stato').value
+  };
+  const note = document.getElementById('mes-note').value.trim();
+  if (note) payload.note = note;
+  if (!payload.data_scadenza) { alert('Data obbligatoria'); return; }
+  const { error } = await sb.from('fotovroby_scadenze')
+    .update(payload).eq('id', scadEditCorrente.id);
+  if (error) { alert('Errore: ' + error.message); return; }
+  chiudiModal('modal-edit-scad');
+  await caricaScadenze();
+}
+
 // La view non porta impianto_id direttamente: fallback via codice
 async function risalIsciImpiantoId(s) {
   if (s.impianto_id) return s.impianto_id;
@@ -234,6 +274,9 @@ function debounce(fn, ms) {
 window.resetFiltri = resetFiltri;
 window.apriPianifica = apriPianifica;
 window.apriEseguito = apriEseguito;
+window.apriModificaScadenza = apriModificaScadenza;
 window.confermaPianifica = confermaPianifica;
 window.confermaEseguito = confermaEseguito;
+window.confermaModificaScad = confermaModificaScad;
+window.rimanda = rimanda;
 window.chiudiModal = chiudiModal;

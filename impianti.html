@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Impianti · fotovroby</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -17,12 +18,268 @@
     <button onclick="logout()">Esci</button>
   </nav>
 </header>
+
 <main>
-  <div class="card"><h2>Impianti</h2><p>In lavorazione. Prossimo step.</p></div>
+  <div id="loading" class="loading">Caricamento...</div>
+  <div id="content" style="display:none">
+
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn-primary" onclick="apriNuovo()">+ Nuovo impianto</button>
+        <div class="filtri" style="flex:1">
+          <div class="filtro">
+            <label>Cliente</label>
+            <select id="f-cliente"><option value="">Tutti</option></select>
+          </div>
+          <div class="filtro">
+            <label>Fascia</label>
+            <select id="f-fascia">
+              <option value="">Tutte</option>
+              <option value="F1 fino a 11,08 kW">F1 fino a 11,08 kW</option>
+              <option value="F2 11,08-20 kW">F2 11,08-20 kW</option>
+              <option value="F3 oltre 20 kW">F3 oltre 20 kW</option>
+            </select>
+          </div>
+          <div class="filtro">
+            <label>Connessione</label>
+            <select id="f-conn">
+              <option value="">Tutte</option>
+              <option value="BT">BT</option>
+              <option value="MT">MT</option>
+            </select>
+          </div>
+          <div class="filtro">
+            <label>Stato</label>
+            <select id="f-stato">
+              <option value="attivo">Attivi</option>
+              <option value="">Tutti</option>
+              <option value="dismesso">Dismessi</option>
+              <option value="in_costruzione">In costruzione</option>
+            </select>
+          </div>
+          <div class="filtro">
+            <label>Cerca</label>
+            <input type="text" id="f-testo" placeholder="Codice, nome, comune...">
+          </div>
+        </div>
+        <div class="tot-info">Totale: <b id="cnt-tot">0</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="tab-scadenze">
+          <thead>
+            <tr>
+              <th>Codice</th>
+              <th>Nome</th>
+              <th>Cliente</th>
+              <th>Potenza</th>
+              <th>Fascia</th>
+              <th>Conn.</th>
+              <th>Regime</th>
+              <th>Comune</th>
+              <th>Stato</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="tab-body">
+            <tr><td colspan="10" class="loading">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </main>
+
+<!-- Modale impianto -->
+<div class="modal" id="modal-impianto">
+  <div class="modal-content modal-lg">
+    <h2 id="mi-titolo">Nuovo impianto</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Codice</label>
+        <input type="text" id="mi-codice" placeholder="Auto se vuoto">
+      </div>
+      <div class="form-group">
+        <label>Cliente *</label>
+        <select id="mi-cliente" required></select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Nome impianto *</label>
+      <input type="text" id="mi-nome" required placeholder='Es. "Casa Rossi" o "Capannone via Roma"'>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Potenza (kW) *</label>
+        <input type="number" id="mi-potenza" step="0.01" min="0.1" required oninput="anteprimaFascia()">
+      </div>
+      <div class="form-group">
+        <label>Fascia calcolata</label>
+        <div id="mi-fascia-preview" class="fascia-preview">—</div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Connessione *</label>
+        <select id="mi-connessione">
+          <option value="BT">BT</option>
+          <option value="MT">MT</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Regime cessione *</label>
+        <select id="mi-regime">
+          <option value="parziale">Parziale</option>
+          <option value="totale">Totale</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data allaccio</label>
+        <input type="date" id="mi-allaccio">
+      </div>
+      <div class="form-group">
+        <label>Codice ditta ADM</label>
+        <input type="text" id="mi-adm" placeholder="Se officina elettrica">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Indirizzo</label>
+      <input type="text" id="mi-indirizzo">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Comune</label>
+        <input type="text" id="mi-comune">
+      </div>
+      <div class="form-group">
+        <label>Portale monitoraggio</label>
+        <input type="text" id="mi-monitoraggio" placeholder="SolarEdge, Huawei...">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Stato</label>
+        <select id="mi-stato">
+          <option value="attivo">Attivo</option>
+          <option value="in_costruzione">In costruzione</option>
+          <option value="dismesso">Dismesso</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="mi-note" rows="2"></textarea>
+    </div>
+
+    <div class="info-box" id="mi-scadenze-info" style="display:none">
+      <b>Scadenze applicate a questo impianto:</b>
+      <ul id="mi-scadenze-lista"></ul>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-danger" id="mi-elimina" onclick="eliminaImpianto()" style="margin-right:auto;display:none">Elimina</button>
+      <button class="btn-secondary" onclick="chiudiModal('modal-impianto')">Annulla</button>
+      <button class="btn-primary" onclick="salvaImpianto()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale scadenze impianto -->
+<div class="modal" id="modal-scadenze">
+  <div class="modal-content modal-lg">
+    <h2>Scadenze impianto <span id="ms-nome"></span></h2>
+    <div id="ms-info" class="modal-info"></div>
+
+    <div class="section-title">
+      Scadenze attive
+      <button class="btn-secondary btn-sm" onclick="apriNuovaScadenza()">+ Nuova scadenza manuale</button>
+    </div>
+    <div class="table-wrap">
+      <table class="tab-scadenze compact">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrizione</th>
+            <th>Categoria</th>
+            <th>Stato</th>
+            <th>Origine</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="ms-lista"></tbody>
+      </table>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="chiudiModal('modal-scadenze')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale modifica / nuova scadenza -->
+<div class="modal" id="modal-scad-edit">
+  <div class="modal-content">
+    <h2 id="mse-titolo">Modifica scadenza</h2>
+    <div class="form-group">
+      <label>Descrizione *</label>
+      <input type="text" id="mse-desc">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="mse-cat">
+          <option value="manutenzione">Manutenzione</option>
+          <option value="verifica">Verifica</option>
+          <option value="adempimento">Adempimento</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Data scadenza *</label>
+        <input type="date" id="mse-data">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Giorni preavviso</label>
+        <input type="number" id="mse-preavviso" value="30" min="1">
+      </div>
+      <div class="form-group">
+        <label>Stato</label>
+        <select id="mse-stato">
+          <option value="aperta">Aperta</option>
+          <option value="pianificata">Pianificata</option>
+          <option value="annullata">Annullata</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="mse-note" rows="2"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="mse-elimina" onclick="eliminaScadenza()" style="margin-right:auto;display:none">Elimina</button>
+      <button class="btn-secondary" onclick="chiudiModal('modal-scad-edit')">Annulla</button>
+      <button class="btn-primary" onclick="salvaScadenza()">Salva</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script src="js/auth.js"></script>
-<script>requireAuth();</script>
+<script src="js/impianti.js"></script>
 </body>
 </html>
