@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login · fotovroby</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="login-container">
+  <h1>fotovroby</h1>
+  <p class="sub">Gestionale impianti fotovoltaici</p>
+  <div id="err" class="error" style="display:none"></div>
+  <form id="form-login">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" required autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn-primary">Accedi</button>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+// Se già loggato, vai in dashboard
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session) window.location.href = 'index.html';
+});
+
+document.getElementById('form-login').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('err');
+  err.style.display = 'none';
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    err.textContent = 'Errore: ' + error.message;
+    err.style.display = 'block';
+    return;
+  }
+
+  // Verifica appartenenza a fotovroby_utenti
+  const { data: utente } = await sb
+    .from('fotovroby_utenti')
+    .select('user_id')
+    .eq('user_id', data.user.id)
+    .eq('attivo', true)
+    .maybeSingle();
+
+  if (!utente) {
+    await sb.auth.signOut();
+    err.textContent = 'Utente non autorizzato per fotovroby.';
+    err.style.display = 'block';
+    return;
+  }
+  window.location.href = 'index.html';
+});
+</script>
+</body>
+</html>

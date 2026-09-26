@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Clienti · fotovroby</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>fotovroby</h1>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="scadenziario.html">Scadenziario</a>
+    <a href="impianti.html">Impianti</a>
+    <a href="clienti.html" class="active">Clienti</a>
+    <span class="user-info" id="user-nome"></span>
+    <button onclick="logout()">Esci</button>
+  </nav>
+</header>
+<main>
+  <div class="card"><h2>Clienti</h2><p>In lavorazione. Prossimo step.</p></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script>requireAuth();</script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+/* fotovroby - stile ispirato a Polizze-Gest */
+
+:root {
+  --primary: #1e40af;
+  --primary-dark: #1e3a8a;
+  --primary-light: #dbeafe;
+  --accent: #0ea5e9;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --rosso: #dc2626;
+  --rosso-bg: #fef2f2;
+  --giallo: #d97706;
+  --giallo-bg: #fffbeb;
+  --verde: #16a34a;
+  --verde-bg: #f0fdf4;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+/* Layout ------------------------------------------------------------- */
+header {
+  background: var(--primary);
+  color: white;
+  padding: 12px 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+header h1 { font-size: 20px; font-weight: 600; }
+header nav { display: flex; gap: 8px; align-items: center; }
+header nav a {
+  color: white;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  opacity: 0.85;
+}
+header nav a:hover, header nav a.active { background: rgba(255,255,255,0.15); opacity: 1; }
+header .user-info { font-size: 13px; opacity: 0.9; margin-left: 16px; }
+header button {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+header button:hover { background: rgba(255,255,255,0.25); }
+
+main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+/* Cards e KPI ------------------------------------------------------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.kpi .label { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+.kpi .value { font-size: 28px; font-weight: 600; color: var(--primary-dark); }
+.kpi .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.kpi.rosso .value  { color: var(--rosso); }
+.kpi.giallo .value { color: var(--giallo); }
+.kpi.verde .value  { color: var(--verde); }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+.card h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--primary-dark);
+}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* Calendario -------------------------------------------------------- */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.calendar-header button {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.calendar-header button:hover { background: var(--primary); color: white; }
+.calendar-title { font-size: 15px; font-weight: 600; text-transform: capitalize; }
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cal-dow {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 6px 0;
+}
+.cal-day {
+  aspect-ratio: 1;
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.cal-day.other-month { color: #cbd5e1; }
+.cal-day.today { background: var(--primary-light); font-weight: 600; }
+.cal-day:hover { border-color: var(--primary); }
+.cal-day .num { font-size: 12px; }
+.cal-dots { display: flex; flex-wrap: wrap; gap: 2px; margin-top: auto; }
+.cal-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+}
+.cal-dot.rosso  { background: var(--rosso); }
+.cal-dot.giallo { background: var(--giallo); }
+.cal-dot.verde  { background: var(--verde); }
+
+/* Popover del giorno */
+.day-popover {
+  position: absolute;
+  top: 100%; left: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 10;
+  min-width: 240px;
+  font-size: 12px;
+}
+.day-popover .item {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.day-popover .item:last-child { border-bottom: none; }
+.day-popover .cliente { font-weight: 600; }
+.day-popover .desc { color: var(--text-muted); }
+
+/* Lista interventi -------------------------------------------------- */
+.list-item {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.list-item:last-child { border-bottom: none; }
+.list-item .info { flex: 1; }
+.list-item .titolo { font-weight: 500; font-size: 14px; }
+.list-item .meta { font-size: 12px; color: var(--text-muted); }
+.badge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.badge.rosso  { background: var(--rosso-bg);  color: var(--rosso); }
+.badge.giallo { background: var(--giallo-bg); color: var(--giallo); }
+.badge.verde  { background: var(--verde-bg);  color: var(--verde); }
+
+/* Login ------------------------------------------------------------- */
+.login-container {
+  max-width: 400px;
+  margin: 80px auto;
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+.login-container h1 {
+  color: var(--primary-dark);
+  margin-bottom: 8px;
+  font-size: 24px;
+}
+.login-container .sub { color: var(--text-muted); margin-bottom: 24px; font-size: 14px; }
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+}
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(30,64,175,0.1);
+}
+.btn-primary {
+  width: 100%;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+.error {
+  background: var(--rosso-bg);
+  color: var(--rosso);
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.loading { text-align: center; padding: 40px; color: var(--text-muted); }

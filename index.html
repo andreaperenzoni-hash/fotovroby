@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · fotovroby</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>fotovroby</h1>
+  <nav>
+    <a href="index.html" class="active">Dashboard</a>
+    <a href="scadenziario.html">Scadenziario</a>
+    <a href="impianti.html">Impianti</a>
+    <a href="clienti.html">Clienti</a>
+    <span class="user-info" id="user-nome"></span>
+    <button onclick="logout()">Esci</button>
+  </nav>
+</header>
+
+<main>
+  <div id="loading" class="loading">Caricamento...</div>
+  <div id="content" style="display:none">
+
+    <!-- KPI --------------------------------------------------------- -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="label">Clienti attivi</div>
+        <div class="value" id="kpi-clienti">–</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Impianti attivi</div>
+        <div class="value" id="kpi-impianti">–</div>
+        <div class="sub" id="kpi-kw">– kW totali</div>
+      </div>
+      <div class="kpi rosso">
+        <div class="label">Scadute</div>
+        <div class="value" id="kpi-rosso">–</div>
+      </div>
+      <div class="kpi giallo">
+        <div class="label">In scadenza</div>
+        <div class="value" id="kpi-giallo">–</div>
+        <div class="sub">Entro preavviso</div>
+      </div>
+      <div class="kpi verde">
+        <div class="label">Future</div>
+        <div class="value" id="kpi-verde">–</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Interventi mese</div>
+        <div class="value" id="kpi-mese">–</div>
+        <div class="sub" id="kpi-prossimi">– prossimi 30 gg</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Calendario ---------------------------------------------- -->
+      <div class="card">
+        <div class="calendar-header">
+          <button onclick="cambiaMese(-1)">‹ Prec</button>
+          <div class="calendar-title" id="cal-titolo"></div>
+          <button onclick="cambiaMese(1)">Succ ›</button>
+        </div>
+        <div class="calendar" id="calendario"></div>
+        <div style="margin-top:12px;display:flex;gap:16px;font-size:12px;color:var(--text-muted)">
+          <span><span class="cal-dot rosso" style="display:inline-block;margin-right:4px"></span>Scadute</span>
+          <span><span class="cal-dot giallo" style="display:inline-block;margin-right:4px"></span>In scadenza</span>
+          <span><span class="cal-dot verde" style="display:inline-block;margin-right:4px"></span>Future</span>
+        </div>
+      </div>
+
+      <!-- Prossimi interventi ------------------------------------- -->
+      <div class="card">
+        <h2>Prossime 10 scadenze</h2>
+        <div id="lista-scadenze"></div>
+      </div>
+    </div>
+
+    <!-- Distribuzione fasce -------------------------------------- -->
+    <div class="card">
+      <h2>Impianti per fascia di potenza</h2>
+      <div id="fasce"></div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
