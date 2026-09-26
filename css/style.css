@@ -259,3 +259,159 @@ main { max-width: 1400px; margin: 0 auto; padding: 24px; }
   margin-bottom: 16px;
 }
 .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+
+/* Scadenziario ----------------------------------------------------- */
+.filtri {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.filtro { display: flex; flex-direction: column; gap: 4px; }
+.filtro label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.filtro select, .filtro input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+.filtro select:focus, .filtro input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(30,64,175,0.1);
+}
+.contatori {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.contatori .tot { margin-left: auto; font-size: 14px; color: var(--text-muted); }
+.contatori .tot b { color: var(--text); }
+
+.btn-secondary {
+  background: white;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+.btn-secondary:hover { background: var(--primary-light); }
+
+.table-wrap { overflow-x: auto; }
+.tab-scadenze {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.tab-scadenze thead th {
+  background: #f1f5f9;
+  padding: 10px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border);
+}
+.tab-scadenze tbody td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.tab-scadenze tbody tr:hover { background: #f8fafc; }
+.data-piccola { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.text-muted { color: var(--text-muted); font-size: 12px; }
+.col-azioni { white-space: nowrap; }
+
+.chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  background: #f1f5f9;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.chip-info { background: var(--primary-light); color: var(--primary-dark); }
+
+.btn-icon {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-right: 4px;
+}
+.btn-icon:hover { background: var(--primary-light); border-color: var(--primary); }
+
+/* Modali ---------------------------------------------------------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.modal.open { display: flex; }
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+.modal-content h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: var(--primary-dark);
+}
+.modal-info {
+  background: #f8fafc;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.modal-info b { color: var(--text); }
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}

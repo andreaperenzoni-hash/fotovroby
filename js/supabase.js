@@ -3,7 +3,7 @@
 // La chiave va ruotata dopo l'esposizione precedente (TODO).
 
 const SUPABASE_URL = 'https://fysrnwybfhtmjvthljuz.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_cmAU_YnoWla9KVhDLjWRww_qM9lIxHs';
+const SUPABASE_ANON_KEY = 'INCOLLA_QUI_ANON_KEY';
 
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

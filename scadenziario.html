@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scadenziario · fotovroby</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -17,12 +18,151 @@
     <button onclick="logout()">Esci</button>
   </nav>
 </header>
+
 <main>
-  <div class="card"><h2>Scadenziario</h2><p>In lavorazione. Prossimo step.</p></div>
+  <div id="loading" class="loading">Caricamento...</div>
+  <div id="content" style="display:none">
+
+    <div class="card">
+      <div class="filtri">
+        <div class="filtro">
+          <label>Semaforo</label>
+          <select id="f-semaforo">
+            <option value="">Tutti</option>
+            <option value="rosso">Scadute</option>
+            <option value="giallo">In scadenza</option>
+            <option value="verde">Future</option>
+          </select>
+        </div>
+        <div class="filtro">
+          <label>Categoria</label>
+          <select id="f-categoria">
+            <option value="">Tutte</option>
+            <option value="manutenzione">Manutenzione</option>
+            <option value="verifica">Verifica</option>
+            <option value="adempimento">Adempimento</option>
+            <option value="garanzia">Garanzia</option>
+          </select>
+        </div>
+        <div class="filtro">
+          <label>Cliente</label>
+          <select id="f-cliente"><option value="">Tutti</option></select>
+        </div>
+        <div class="filtro">
+          <label>Fascia</label>
+          <select id="f-fascia">
+            <option value="">Tutte</option>
+            <option value="F1 fino a 11,08 kW">F1 fino a 11,08 kW</option>
+            <option value="F2 11,08-20 kW">F2 11,08-20 kW</option>
+            <option value="F3 oltre 20 kW">F3 oltre 20 kW</option>
+          </select>
+        </div>
+        <div class="filtro">
+          <label>Cerca</label>
+          <input type="text" id="f-testo" placeholder="Impianto, descrizione...">
+        </div>
+        <div class="filtro">
+          <label>&nbsp;</label>
+          <button class="btn-secondary" onclick="resetFiltri()">Azzera</button>
+        </div>
+      </div>
+      <div class="contatori">
+        <span class="badge rosso" id="cnt-rosso">0 scadute</span>
+        <span class="badge giallo" id="cnt-giallo">0 in scadenza</span>
+        <span class="badge verde" id="cnt-verde">0 future</span>
+        <span class="tot">Totale visualizzate: <b id="cnt-tot">0</b></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="tab-scadenze">
+          <thead>
+            <tr>
+              <th>Scadenza</th>
+              <th>Cliente</th>
+              <th>Impianto</th>
+              <th>Descrizione</th>
+              <th>Categoria</th>
+              <th>Stato</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="tab-body">
+            <tr><td colspan="7" class="loading">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </main>
+
+<div class="modal" id="modal-pianifica">
+  <div class="modal-content">
+    <h2>Pianifica intervento</h2>
+    <div id="mp-info" class="modal-info"></div>
+    <div class="form-group">
+      <label>Data pianificata</label>
+      <input type="date" id="mp-data">
+    </div>
+    <div class="form-group">
+      <label>Tecnico assegnato</label>
+      <input type="text" id="mp-tecnico" placeholder="Nome tecnico">
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="mp-note" rows="3"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="chiudiModal('modal-pianifica')">Annulla</button>
+      <button class="btn-primary" onclick="confermaPianifica()">Pianifica</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal-eseguito">
+  <div class="modal-content">
+    <h2>Segna come eseguito</h2>
+    <div id="me-info" class="modal-info"></div>
+    <div class="form-group">
+      <label>Data intervento</label>
+      <input type="date" id="me-data">
+    </div>
+    <div class="form-group">
+      <label>Tecnico</label>
+      <input type="text" id="me-tecnico">
+    </div>
+    <div class="form-group">
+      <label>Esito</label>
+      <select id="me-esito">
+        <option value="ok">OK</option>
+        <option value="ok_con_note">OK con note</option>
+        <option value="anomalia">Anomalia rilevata</option>
+        <option value="da_ripetere">Da ripetere</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Ore lavorate</label>
+      <input type="number" id="me-ore" step="0.5" min="0" value="1">
+    </div>
+    <div class="form-group">
+      <label>Costo materiali (€)</label>
+      <input type="number" id="me-costo" step="0.01" min="0" value="0">
+    </div>
+    <div class="form-group">
+      <label>Descrizione / note</label>
+      <textarea id="me-descrizione" rows="3"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="chiudiModal('modal-eseguito')">Annulla</button>
+      <button class="btn-primary" onclick="confermaEseguito()">Registra intervento</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script src="js/auth.js"></script>
-<script>requireAuth();</script>
+<script src="js/scadenziario.js"></script>
 </body>
 </html>
