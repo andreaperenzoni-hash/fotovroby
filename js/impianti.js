@@ -1,23 +1,30 @@
-// Anagrafica impianti + gestione scadenze fotovroby
+// Impianti fotovroby v2 - fasi, tecnici, componenti inline
 
 let impianti = [];
 let filtrati = [];
 let clientiCache = [];
+let tecniciCache = [];
 let impiantoInEdit = null;
-let impiantoScadenze = null; // impianto attuale in modale scadenze
+let impiantoScadenze = null;
 let scadInEdit = null;
+
+const FASE_HELP = {
+  progettuale: 'Compila dati tecnici e progettista. Nessuna scadenza automatica.',
+  autorizzazione: 'Pratiche in corso (GSE, distributore, Comune). Scadenze automatiche solo manuali.',
+  attivo: 'Impianto in esercizio: SPI, SPG, ADM e manutenzione annuale si generano in automatico.',
+  dismesso: 'Impianto fuori servizio. Le scadenze aperte vengono annullate.'
+};
 
 (async () => {
   const auth = await requireAuth();
   if (!auth) return;
-  await Promise.all([caricaClienti(), caricaImpianti()]);
+  await Promise.all([caricaClienti(), caricaTecnici(), caricaImpianti()]);
 
-  // Filtro cliente da querystring
   const params = new URLSearchParams(location.search);
   const preCli = params.get('cliente');
   if (preCli) document.getElementById('f-cliente').value = preCli;
 
-  ['f-cliente','f-fascia','f-conn','f-stato'].forEach(id => {
+  ['f-cliente','f-fase','f-fascia','f-install'].forEach(id => {
     document.getElementById(id).addEventListener('change', applicaFiltri);
   });
   document.getElementById('f-testo').addEventListener('input', debounce(applicaFiltri, 200));
@@ -29,23 +36,25 @@ let scadInEdit = null;
 
 async function caricaClienti() {
   const { data } = await sb.from('fotovroby_clienti')
-    .select('id, nome, tipo')
-    .eq('attivo', true)
-    .order('nome');
+    .select('id, nome, tipo').eq('attivo', true).order('nome');
   clientiCache = data || [];
-
-  const fillSelect = (id, includeAll) => {
-    const sel = document.getElementById(id);
-    sel.innerHTML = includeAll ? '<option value="">Tutti</option>' : '<option value="">Seleziona...</option>';
-    clientiCache.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.id;
-      o.textContent = c.nome;
-      sel.appendChild(o);
-    });
-  };
-  fillSelect('f-cliente', true);
-  fillSelect('mi-cliente', false);
+  fillSel('f-cliente', clientiCache, true);
+  fillSel('mi-cliente', clientiCache, false);
+}
+async function caricaTecnici() {
+  const { data } = await sb.from('fotovroby_tecnici')
+    .select('id, nome, qualifica, azienda').eq('attivo', true).order('nome');
+  tecniciCache = data || [];
+}
+function fillSel(id, items, includeAll) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = includeAll ? '<option value="">Tutti</option>' : '<option value="">Seleziona...</option>';
+  items.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = c.nome;
+    sel.appendChild(o);
+  });
 }
 
 async function caricaImpianti() {
@@ -58,18 +67,20 @@ async function caricaImpianti() {
 
 function applicaFiltri() {
   const cli = document.getElementById('f-cliente').value;
+  const fase = document.getElementById('f-fase').value;
   const fas = document.getElementById('f-fascia').value;
-  const con = document.getElementById('f-conn').value;
-  const sta = document.getElementById('f-stato').value;
+  const inst = document.getElementById('f-install').value;
   const txt = document.getElementById('f-testo').value.toLowerCase().trim();
 
   filtrati = impianti.filter(i => {
     if (cli && i.cliente_id !== cli) return false;
+    if (fase && i.fase !== fase) return false;
     if (fas && i.fascia !== fas) return false;
-    if (con && i.connessione !== con) return false;
-    if (sta && i.stato !== sta) return false;
+    if (inst && i.tipo_installazione !== inst) return false;
     if (txt) {
-      const hay = [i.codice, i.nome, i.comune, i.cliente?.nome].join(' ').toLowerCase();
+      const hay = [i.codice, i.nome, i.comune, i.cliente?.nome,
+                   i.pannello_marca, i.pannello_modello,
+                   i.inverter_marca, i.inverter_modello].join(' ').toLowerCase();
       if (!hay.includes(txt)) return false;
     }
     return true;
@@ -91,13 +102,13 @@ function render() {
       <td>${escapeHtml(i.cliente?.nome || '')}</td>
       <td>${formatKw(i.potenza_kw)} kW</td>
       <td><span class="chip">${badgeFascia(i.fascia)}</span></td>
+      <td>${installLabel(i.tipo_installazione)}</td>
       <td>${i.connessione}</td>
-      <td>${i.regime_cessione}</td>
       <td>${escapeHtml(i.comune || '–')}</td>
-      <td>${statoImpianto(i.stato)}</td>
+      <td>${faseBadge(i.fase)}</td>
       <td class="col-azioni">
         <button class="btn-icon" onclick='apriModifica("${i.id}")' title="Modifica">✎</button>
-        <button class="btn-icon" onclick='apriScadenze("${i.id}")' title="Scadenze">📋</button>
+        <button class="btn-icon" onclick='apriScadenze("${i.id}")' title="Scadenze" ${i.fase !== 'attivo' ? 'disabled' : ''}>📋</button>
       </td>
     </tr>
   `).join('');
@@ -107,37 +118,57 @@ function badgeFascia(f) {
   if (!f) return '–';
   return f.startsWith('F1') ? 'F1' : f.startsWith('F2') ? 'F2' : 'F3';
 }
-function statoImpianto(s) {
-  if (s === 'attivo') return '<span class="chip chip-success">Attivo</span>';
-  if (s === 'dismesso') return '<span class="chip chip-warn">Dismesso</span>';
-  return '<span class="chip">In costr.</span>';
+function installLabel(x) {
+  if (!x) return '<span class="text-muted">–</span>';
+  return { tetto:'🏠', terra:'🌱', float:'💧', tracker:'☀️' }[x] + ' ' + x;
+}
+function faseBadge(f) {
+  const map = {
+    progettuale: '<span class="chip chip-info">Progetto</span>',
+    autorizzazione: '<span class="chip chip-warn">Autorizz.</span>',
+    attivo: '<span class="chip chip-success">Attivo</span>',
+    dismesso: '<span class="chip">Dismesso</span>',
+    in_costruzione: '<span class="chip chip-warn">In costr.</span>'
+  };
+  return map[f] || f;
 }
 function formatKw(n) { return Number(n).toLocaleString('it-IT', { maximumFractionDigits: 2 }); }
 
-// NUOVO / MODIFICA -----------------------------------------------
+// FASI selettore --------------------------------------------------
+function setFase(f) {
+  document.getElementById('mi-fase').value = f;
+  document.querySelectorAll('.fase-step').forEach(b => {
+    b.classList.toggle('active', b.dataset.fase === f);
+  });
+  document.getElementById('mi-fase-help').textContent = FASE_HELP[f] || '';
+}
+
+// NUOVO / MODIFICA ------------------------------------------------
+function svuotaForm() {
+  ['mi-codice','mi-nome','mi-potenza','mi-indirizzo','mi-comune','mi-pod','mi-adm',
+   'mi-monitoraggio','mi-note','mi-pannello-marca','mi-pannello-modello','mi-pannello-data',
+   'mi-inverter-marca','mi-inverter-modello','mi-inverter-data',
+   'mi-batteria-marca','mi-batteria-modello','mi-batteria-data','mi-allaccio']
+    .forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mi-cliente').value = '';
+  document.getElementById('mi-installazione').value = '';
+  document.getElementById('mi-connessione').value = 'BT';
+  document.getElementById('mi-regime').value = 'parziale';
+  setFase('progettuale');
+}
+
 function apriNuovo() {
   impiantoInEdit = null;
   document.getElementById('mi-titolo').textContent = 'Nuovo impianto';
-  document.getElementById('mi-codice').value = '';
-  document.getElementById('mi-cliente').value = '';
-  document.getElementById('mi-nome').value = '';
-  document.getElementById('mi-potenza').value = '';
-  document.getElementById('mi-connessione').value = 'BT';
-  document.getElementById('mi-regime').value = 'parziale';
+  svuotaForm();
   document.getElementById('mi-allaccio').value = new Date().toISOString().slice(0, 10);
-  document.getElementById('mi-adm').value = '';
-  document.getElementById('mi-indirizzo').value = '';
-  document.getElementById('mi-comune').value = '';
-  document.getElementById('mi-monitoraggio').value = '';
-  document.getElementById('mi-stato').value = 'attivo';
-  document.getElementById('mi-note').value = '';
   document.getElementById('mi-elimina').style.display = 'none';
-  document.getElementById('mi-scadenze-info').style.display = 'none';
+  document.getElementById('mi-tecnici-lista').innerHTML = '<div class="text-muted">Salva prima l\'impianto per assegnare tecnici</div>';
   anteprimaFascia();
   apriModal('modal-impianto');
 }
 
-function apriModifica(id) {
+async function apriModifica(id) {
   const i = impianti.find(x => x.id === id);
   if (!i) return;
   impiantoInEdit = id;
@@ -146,17 +177,29 @@ function apriModifica(id) {
   document.getElementById('mi-cliente').value = i.cliente_id || '';
   document.getElementById('mi-nome').value = i.nome || '';
   document.getElementById('mi-potenza').value = i.potenza_kw || '';
+  document.getElementById('mi-installazione').value = i.tipo_installazione || '';
   document.getElementById('mi-connessione').value = i.connessione || 'BT';
   document.getElementById('mi-regime').value = i.regime_cessione || 'parziale';
   document.getElementById('mi-allaccio').value = i.data_allaccio || '';
+  document.getElementById('mi-pod').value = i.pod || '';
   document.getElementById('mi-adm').value = i.codice_ditta_adm || '';
   document.getElementById('mi-indirizzo').value = i.indirizzo || '';
   document.getElementById('mi-comune').value = i.comune || '';
   document.getElementById('mi-monitoraggio').value = i.portale_monitoraggio || '';
-  document.getElementById('mi-stato').value = i.stato || 'attivo';
   document.getElementById('mi-note').value = i.note || '';
+  document.getElementById('mi-pannello-marca').value = i.pannello_marca || '';
+  document.getElementById('mi-pannello-modello').value = i.pannello_modello || '';
+  document.getElementById('mi-pannello-data').value = i.pannello_data || '';
+  document.getElementById('mi-inverter-marca').value = i.inverter_marca || '';
+  document.getElementById('mi-inverter-modello').value = i.inverter_modello || '';
+  document.getElementById('mi-inverter-data').value = i.inverter_data || '';
+  document.getElementById('mi-batteria-marca').value = i.batteria_marca || '';
+  document.getElementById('mi-batteria-modello').value = i.batteria_modello || '';
+  document.getElementById('mi-batteria-data').value = i.batteria_data || '';
+  setFase(i.fase || 'progettuale');
   document.getElementById('mi-elimina').style.display = '';
   anteprimaFascia();
+  await caricaTecniciImpianto(id);
   apriModal('modal-impianto');
 }
 
@@ -175,34 +218,59 @@ async function salvaImpianto() {
     cliente_id: document.getElementById('mi-cliente').value,
     nome: document.getElementById('mi-nome').value.trim(),
     potenza_kw: parseFloat(document.getElementById('mi-potenza').value),
+    tipo_installazione: document.getElementById('mi-installazione').value || null,
     connessione: document.getElementById('mi-connessione').value,
     regime_cessione: document.getElementById('mi-regime').value,
     data_allaccio: document.getElementById('mi-allaccio').value || null,
+    pod: document.getElementById('mi-pod').value.trim() || null,
     codice_ditta_adm: document.getElementById('mi-adm').value.trim() || null,
     indirizzo: document.getElementById('mi-indirizzo').value.trim() || null,
     comune: document.getElementById('mi-comune').value.trim() || null,
     portale_monitoraggio: document.getElementById('mi-monitoraggio').value.trim() || null,
-    stato: document.getElementById('mi-stato').value,
-    note: document.getElementById('mi-note').value.trim() || null
+    fase: document.getElementById('mi-fase').value,
+    note: document.getElementById('mi-note').value.trim() || null,
+    pannello_marca: document.getElementById('mi-pannello-marca').value.trim() || null,
+    pannello_modello: document.getElementById('mi-pannello-modello').value.trim() || null,
+    pannello_data: document.getElementById('mi-pannello-data').value || null,
+    inverter_marca: document.getElementById('mi-inverter-marca').value.trim() || null,
+    inverter_modello: document.getElementById('mi-inverter-modello').value.trim() || null,
+    inverter_data: document.getElementById('mi-inverter-data').value || null,
+    batteria_marca: document.getElementById('mi-batteria-marca').value.trim() || null,
+    batteria_modello: document.getElementById('mi-batteria-modello').value.trim() || null,
+    batteria_data: document.getElementById('mi-batteria-data').value || null
   };
   if (!payload.nome) { alert('Nome obbligatorio'); return; }
   if (!payload.cliente_id) { alert('Cliente obbligatorio'); return; }
   if (!(payload.potenza_kw > 0)) { alert('Inserisci una potenza valida'); return; }
 
-  // Genera codice se vuoto
   if (!payload.codice) {
     const y = new Date().getFullYear();
     const { count } = await sb.from('fotovroby_impianti')
-      .select('*', { count: 'exact', head: true })
-      .like('codice', `FV-${y}-%`);
+      .select('*', { count: 'exact', head: true }).like('codice', `FV-${y}-%`);
     payload.codice = `FV-${y}-${String((count || 0) + 1).padStart(3, '0')}`;
   }
 
-  const q = impiantoInEdit
-    ? sb.from('fotovroby_impianti').update(payload).eq('id', impiantoInEdit)
-    : sb.from('fotovroby_impianti').insert(payload);
-  const { error } = await q;
-  if (error) { alert('Errore: ' + error.message); return; }
+  let result;
+  if (impiantoInEdit) {
+    result = await sb.from('fotovroby_impianti').update(payload).eq('id', impiantoInEdit).select().single();
+  } else {
+    result = await sb.from('fotovroby_impianti').insert(payload).select().single();
+  }
+  if (result.error) { alert('Errore: ' + result.error.message); return; }
+
+  const nuovoId = result.data?.id;
+  const faseAttivo = payload.fase === 'attivo';
+
+  // Se nuovo impianto e fase=attivo, mostra feedback scadenze generate
+  if (faseAttivo) {
+    const { count } = await sb.from('fotovroby_scadenze')
+      .select('*', { count: 'exact', head: true })
+      .eq('impianto_id', nuovoId).in('stato', ['aperta','pianificata']);
+    toast(`Impianto salvato. ${count || 0} scadenze automatiche generate.`);
+  } else {
+    toast('Impianto salvato (fase ' + payload.fase + ', nessuna scadenza automatica).');
+  }
+
   chiudiModal('modal-impianto');
   await caricaImpianti();
   applicaFiltri();
@@ -210,7 +278,7 @@ async function salvaImpianto() {
 
 async function eliminaImpianto() {
   if (!impiantoInEdit) return;
-  if (!confirm('Eliminare l\'impianto? Verranno cancellate anche tutte le sue scadenze e interventi.')) return;
+  if (!confirm('Eliminare l\'impianto? Verranno cancellate anche scadenze, interventi e tecnici assegnati.')) return;
   const { error } = await sb.from('fotovroby_impianti').delete().eq('id', impiantoInEdit);
   if (error) { alert('Errore: ' + error.message); return; }
   chiudiModal('modal-impianto');
@@ -218,7 +286,79 @@ async function eliminaImpianto() {
   applicaFiltri();
 }
 
-// GESTIONE SCADENZE PER IMPIANTO ---------------------------------
+// TECNICI ASSEGNATI ----------------------------------------------
+async function caricaTecniciImpianto(impId) {
+  const { data, error } = await sb.from('fotovroby_impianto_tecnici')
+    .select('*, tecnico:fotovroby_tecnici(id, nome, qualifica, azienda, telefono, email)')
+    .eq('impianto_id', impId)
+    .order('ruolo');
+  const el = document.getElementById('mi-tecnici-lista');
+  if (error) { el.innerHTML = '<div class="text-muted">Errore caricamento</div>'; return; }
+  if (!data.length) { el.innerHTML = '<div class="text-muted">Nessun tecnico assegnato</div>'; return; }
+  el.innerHTML = data.map(a => `
+    <div class="tecnico-row">
+      <div>
+        <span class="chip chip-info">${escapeHtml(ruoloLabel(a.ruolo))}</span>
+        <b>${escapeHtml(a.tecnico?.nome || '')}</b>
+        ${a.tecnico?.qualifica ? '<span class="text-muted"> · ' + escapeHtml(a.tecnico.qualifica) + '</span>' : ''}
+        ${a.tecnico?.azienda ? '<span class="text-muted"> · ' + escapeHtml(a.tecnico.azienda) + '</span>' : ''}
+      </div>
+      <div>
+        ${a.tecnico?.telefono ? '<span class="text-muted">' + escapeHtml(a.tecnico.telefono) + '</span>' : ''}
+        <button class="btn-icon" onclick="rimuoviTecnico('${a.id}')" title="Rimuovi">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+function ruoloLabel(r) {
+  return { progettista:'Progettista', installatore:'Installatore', direttore_lavori:'DL',
+           taratura:'Taratura', manutenzione:'Manutenzione', altro:'Altro' }[r] || r;
+}
+
+function apriAggiungiTecnico() {
+  if (!impiantoInEdit) {
+    alert('Salva prima l\'impianto per assegnare tecnici.');
+    return;
+  }
+  const sel = document.getElementById('ta-tecnico');
+  sel.innerHTML = '<option value="">Seleziona tecnico...</option>';
+  tecniciCache.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t.id;
+    o.textContent = `${t.nome}${t.qualifica ? ' - ' + t.qualifica : ''}${t.azienda ? ' (' + t.azienda + ')' : ''}`;
+    sel.appendChild(o);
+  });
+  document.getElementById('ta-ruolo').value = 'progettista';
+  document.getElementById('ta-dal').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('ta-al').value = '';
+  document.getElementById('ta-note').value = '';
+  apriModal('modal-tec-assign');
+}
+
+async function confermaAssegnaTecnico() {
+  const payload = {
+    impianto_id: impiantoInEdit,
+    tecnico_id: document.getElementById('ta-tecnico').value,
+    ruolo: document.getElementById('ta-ruolo').value,
+    dal: document.getElementById('ta-dal').value || null,
+    al: document.getElementById('ta-al').value || null,
+    note: document.getElementById('ta-note').value.trim() || null
+  };
+  if (!payload.tecnico_id) { alert('Seleziona un tecnico'); return; }
+  const { error } = await sb.from('fotovroby_impianto_tecnici').insert(payload);
+  if (error) { alert('Errore: ' + error.message); return; }
+  chiudiModal('modal-tec-assign');
+  await caricaTecniciImpianto(impiantoInEdit);
+}
+
+async function rimuoviTecnico(assegnazioneId) {
+  if (!confirm('Rimuovere questa assegnazione?')) return;
+  const { error } = await sb.from('fotovroby_impianto_tecnici').delete().eq('id', assegnazioneId);
+  if (error) { alert('Errore: ' + error.message); return; }
+  await caricaTecniciImpianto(impiantoInEdit);
+}
+
+// GESTIONE SCADENZE IMPIANTO -------------------------------------
 async function apriScadenze(id) {
   const i = impianti.find(x => x.id === id);
   if (!i) return;
@@ -226,7 +366,7 @@ async function apriScadenze(id) {
   document.getElementById('ms-nome').textContent = i.codice || i.nome;
   document.getElementById('ms-info').innerHTML = `
     <b>${escapeHtml(i.nome)}</b> · ${escapeHtml(i.cliente?.nome || '')}<br>
-    <span class="text-muted">${formatKw(i.potenza_kw)} kW · ${badgeFascia(i.fascia)} · ${i.connessione} · ${i.regime_cessione}</span>
+    <span class="text-muted">${formatKw(i.potenza_kw)} kW · ${badgeFascia(i.fascia)} · ${i.connessione} · ${i.regime_cessione} · ${faseBadge(i.fase)}</span>
   `;
   await caricaScadenzeImpianto();
   apriModal('modal-scadenze');
@@ -253,9 +393,7 @@ async function caricaScadenzeImpianto() {
       : '<span class="chip">manuale</span>';
     return `
       <tr>
-        <td>
-          <span class="badge ${sem}">${formatData(s.data_scadenza)}</span>
-        </td>
+        <td><span class="badge ${sem}">${formatData(s.data_scadenza)}</span></td>
         <td>${escapeHtml(s.descrizione)}</td>
         <td>${escapeHtml(s.categoria)}</td>
         <td>${s.stato === 'pianificata' ? '<span class="chip chip-info">Pianificata</span>' : '<span class="chip">Aperta</span>'}</td>
@@ -266,6 +404,14 @@ async function caricaScadenzeImpianto() {
       </tr>
     `;
   }).join('');
+}
+
+async function rigeneraScadenze() {
+  if (!impiantoScadenze) return;
+  const { data, error } = await sb.rpc('fotovroby_genera_scadenze', { p_impianto: impiantoScadenze.id });
+  if (error) { alert('Errore: ' + error.message); return; }
+  toast(`Rigenerate: ${data || 0} nuove scadenze create.`);
+  await caricaScadenzeImpianto();
 }
 
 function apriNuovaScadenza() {
@@ -328,9 +474,21 @@ async function eliminaScadenza() {
   await caricaScadenzeImpianto();
 }
 
-// UTILS
+// UTILS -----------------------------------------------------------
 function apriModal(id) { document.getElementById(id).classList.add('open'); }
 function chiudiModal(id) { document.getElementById(id).classList.remove('open'); }
+function toast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.className = 'toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
 function formatData(iso) {
   if (!iso) return '';
   const [y, m, d] = iso.split('-');
@@ -350,12 +508,17 @@ function debounce(fn, ms) {
   let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
 }
 
+window.setFase = setFase;
 window.apriNuovo = apriNuovo;
 window.apriModifica = apriModifica;
 window.apriScadenze = apriScadenze;
 window.salvaImpianto = salvaImpianto;
 window.eliminaImpianto = eliminaImpianto;
 window.anteprimaFascia = anteprimaFascia;
+window.apriAggiungiTecnico = apriAggiungiTecnico;
+window.confermaAssegnaTecnico = confermaAssegnaTecnico;
+window.rimuoviTecnico = rimuoviTecnico;
+window.rigeneraScadenze = rigeneraScadenze;
 window.apriNuovaScadenza = apriNuovaScadenza;
 window.apriModificaScad = apriModificaScad;
 window.salvaScadenza = salvaScadenza;

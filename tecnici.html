@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tecnici · fotovroby</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>fotovroby</h1>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="scadenziario.html">Scadenziario</a>
+    <a href="interventi.html">Interventi</a>
+    <a href="impianti.html">Impianti</a>
+    <a href="clienti.html">Clienti</a>
+    <a href="tecnici.html" class="active">Tecnici</a>
+    <span class="user-info" id="user-nome"></span>
+    <button onclick="logout()">Esci</button>
+  </nav>
+</header>
+
+<main>
+  <div id="loading" class="loading">Caricamento...</div>
+  <div id="content" style="display:none">
+
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn-primary" onclick="apriNuovo()">+ Nuovo tecnico</button>
+        <div class="filtri" style="flex:1">
+          <div class="filtro">
+            <label>Cerca</label>
+            <input type="text" id="f-testo" placeholder="Nome, azienda, qualifica...">
+          </div>
+          <div class="filtro">
+            <label>Mostra</label>
+            <select id="f-attivo">
+              <option value="true">Solo attivi</option>
+              <option value="">Tutti</option>
+              <option value="false">Solo disattivati</option>
+            </select>
+          </div>
+        </div>
+        <div class="tot-info">Totale: <b id="cnt-tot">0</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="tab-scadenze">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Qualifica</th>
+              <th>Azienda</th>
+              <th>Telefono</th>
+              <th>Email</th>
+              <th>Impianti</th>
+              <th>Ruoli</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="tab-body">
+            <tr><td colspan="8" class="loading">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Modale nuovo/modifica tecnico -->
+<div class="modal" id="modal-tec">
+  <div class="modal-content modal-lg">
+    <h2 id="mt-titolo">Nuovo tecnico</h2>
+    <div class="form-group">
+      <label>Nome e cognome *</label>
+      <input type="text" id="mt-nome" required>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Qualifica</label>
+        <input type="text" id="mt-qualifica" placeholder="Perito, ing., P.I., ...">
+      </div>
+      <div class="form-group">
+        <label>Azienda (se esterno)</label>
+        <input type="text" id="mt-azienda">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Telefono</label>
+        <input type="text" id="mt-telefono">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="mt-email">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>PEC</label>
+        <input type="email" id="mt-pec">
+      </div>
+      <div class="form-group">
+        <label>N. iscrizione albo</label>
+        <input type="text" id="mt-albo">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="mt-note" rows="2"></textarea>
+    </div>
+    <div class="form-group">
+      <label><input type="checkbox" id="mt-attivo" checked> Tecnico attivo</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="mt-elimina" onclick="eliminaTecnico()" style="margin-right:auto;display:none">Elimina</button>
+      <button class="btn-secondary" onclick="chiudiModal('modal-tec')">Annulla</button>
+      <button class="btn-primary" onclick="salvaTecnico()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/tecnici.js"></script>
+</body>
+</html>

@@ -511,3 +511,103 @@ a:hover { text-decoration: underline; }
 /* Interventi ------------------------------------------------------- */
 .chip-danger { background: var(--rosso-bg); color: var(--rosso); }
 .col-desc { max-width: 300px; }
+
+/* v0.5: fasi, tecnici, toast ---------------------------------- */
+.modal-xl { max-width: 900px; }
+
+.fase-selector {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+.fase-selector > label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.fase-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+@media (max-width: 600px) { .fase-steps { grid-template-columns: 1fr 1fr; } }
+.fase-step {
+  padding: 10px 8px;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.fase-step:hover { border-color: var(--primary); color: var(--primary); }
+.fase-step.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.fase-help {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.componente-box {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.componente-label {
+  font-size: 12px;
+  color: var(--primary-dark);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.tecnici-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tecnico-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--primary-dark);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  font-size: 14px;
+  z-index: 1000;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+button[disabled] { opacity: 0.4; cursor: not-allowed; }

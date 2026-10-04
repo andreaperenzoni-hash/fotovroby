@@ -15,6 +15,7 @@
     <a href="interventi.html">Interventi</a>
     <a href="impianti.html" class="active">Impianti</a>
     <a href="clienti.html">Clienti</a>
+    <a href="tecnici.html">Tecnici</a>
     <span class="user-info" id="user-nome"></span>
     <button onclick="logout()">Esci</button>
   </nav>
@@ -33,6 +34,16 @@
             <select id="f-cliente"><option value="">Tutti</option></select>
           </div>
           <div class="filtro">
+            <label>Fase</label>
+            <select id="f-fase">
+              <option value="">Tutte</option>
+              <option value="progettuale">Progettuale</option>
+              <option value="autorizzazione">Autorizzazione</option>
+              <option value="attivo" selected>Attivo</option>
+              <option value="dismesso">Dismesso</option>
+            </select>
+          </div>
+          <div class="filtro">
             <label>Fascia</label>
             <select id="f-fascia">
               <option value="">Tutte</option>
@@ -42,25 +53,18 @@
             </select>
           </div>
           <div class="filtro">
-            <label>Connessione</label>
-            <select id="f-conn">
-              <option value="">Tutte</option>
-              <option value="BT">BT</option>
-              <option value="MT">MT</option>
-            </select>
-          </div>
-          <div class="filtro">
-            <label>Stato</label>
-            <select id="f-stato">
-              <option value="attivo">Attivi</option>
+            <label>Tipo install.</label>
+            <select id="f-install">
               <option value="">Tutti</option>
-              <option value="dismesso">Dismessi</option>
-              <option value="in_costruzione">In costruzione</option>
+              <option value="tetto">Tetto</option>
+              <option value="terra">Terra</option>
+              <option value="float">Float</option>
+              <option value="tracker">Tracker</option>
             </select>
           </div>
           <div class="filtro">
             <label>Cerca</label>
-            <input type="text" id="f-testo" placeholder="Codice, nome, comune...">
+            <input type="text" id="f-testo" placeholder="Codice, nome, comune, pannello...">
           </div>
         </div>
         <div class="tot-info">Totale: <b id="cnt-tot">0</b></div>
@@ -77,10 +81,10 @@
               <th>Cliente</th>
               <th>Potenza</th>
               <th>Fascia</th>
+              <th>Install.</th>
               <th>Conn.</th>
-              <th>Regime</th>
               <th>Comune</th>
-              <th>Stato</th>
+              <th>Fase</th>
               <th>Azioni</th>
             </tr>
           </thead>
@@ -93,11 +97,26 @@
   </div>
 </main>
 
-<!-- Modale impianto -->
+<!-- Modale impianto con tabs per fase -->
 <div class="modal" id="modal-impianto">
-  <div class="modal-content modal-lg">
+  <div class="modal-content modal-xl">
     <h2 id="mi-titolo">Nuovo impianto</h2>
 
+    <!-- Selettore FASE sempre visibile -->
+    <div class="fase-selector">
+      <label>Fase impianto</label>
+      <div class="fase-steps">
+        <button type="button" class="fase-step" data-fase="progettuale" onclick="setFase('progettuale')">1. Progettuale</button>
+        <button type="button" class="fase-step" data-fase="autorizzazione" onclick="setFase('autorizzazione')">2. Autorizzazione</button>
+        <button type="button" class="fase-step" data-fase="attivo" onclick="setFase('attivo')">3. Attivo</button>
+        <button type="button" class="fase-step" data-fase="dismesso" onclick="setFase('dismesso')">4. Dismesso</button>
+      </div>
+      <input type="hidden" id="mi-fase" value="progettuale">
+      <div class="fase-help" id="mi-fase-help"></div>
+    </div>
+
+    <!-- SEZIONE 1: dati base (sempre visibile) -->
+    <div class="section-title">Dati base</div>
     <div class="form-row">
       <div class="form-group">
         <label>Codice</label>
@@ -108,12 +127,23 @@
         <select id="mi-cliente" required></select>
       </div>
     </div>
-
     <div class="form-group">
       <label>Nome impianto *</label>
       <input type="text" id="mi-nome" required placeholder='Es. "Casa Rossi" o "Capannone via Roma"'>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Indirizzo</label>
+        <input type="text" id="mi-indirizzo">
+      </div>
+      <div class="form-group">
+        <label>Comune</label>
+        <input type="text" id="mi-comune">
+      </div>
+    </div>
 
+    <!-- SEZIONE 2: dati tecnici (progettuale in su) -->
+    <div class="section-title">Dati tecnici</div>
     <div class="form-row">
       <div class="form-group">
         <label>Potenza (kW) *</label>
@@ -124,8 +154,17 @@
         <div id="mi-fascia-preview" class="fascia-preview">—</div>
       </div>
     </div>
-
     <div class="form-row">
+      <div class="form-group">
+        <label>Tipo installazione</label>
+        <select id="mi-installazione">
+          <option value="">–</option>
+          <option value="tetto">Tetto</option>
+          <option value="terra">Terra</option>
+          <option value="float">Float (galleggiante)</option>
+          <option value="tracker">Tracker (inseguitore)</option>
+        </select>
+      </div>
       <div class="form-group">
         <label>Connessione *</label>
         <select id="mi-connessione">
@@ -133,6 +172,8 @@
           <option value="MT">MT</option>
         </select>
       </div>
+    </div>
+    <div class="form-row">
       <div class="form-group">
         <label>Regime cessione *</label>
         <select id="mi-regime">
@@ -140,54 +181,98 @@
           <option value="totale">Totale</option>
         </select>
       </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>Data allaccio</label>
-        <input type="date" id="mi-allaccio">
-      </div>
-      <div class="form-group">
-        <label>Codice ditta ADM</label>
-        <input type="text" id="mi-adm" placeholder="Se officina elettrica">
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Indirizzo</label>
-      <input type="text" id="mi-indirizzo">
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>Comune</label>
-        <input type="text" id="mi-comune">
-      </div>
       <div class="form-group">
         <label>Portale monitoraggio</label>
         <input type="text" id="mi-monitoraggio" placeholder="SolarEdge, Huawei...">
       </div>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Stato</label>
-        <select id="mi-stato">
-          <option value="attivo">Attivo</option>
-          <option value="in_costruzione">In costruzione</option>
-          <option value="dismesso">Dismesso</option>
-        </select>
+    <!-- SEZIONE 3: componenti principali -->
+    <div class="section-title">Componenti principali</div>
+    <div class="componente-box">
+      <div class="componente-label">Pannelli</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Marca</label>
+          <input type="text" id="mi-pannello-marca">
+        </div>
+        <div class="form-group">
+          <label>Modello</label>
+          <input type="text" id="mi-pannello-modello">
+        </div>
+        <div class="form-group">
+          <label>Data installazione</label>
+          <input type="date" id="mi-pannello-data">
+        </div>
+      </div>
+    </div>
+    <div class="componente-box">
+      <div class="componente-label">Inverter</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Marca</label>
+          <input type="text" id="mi-inverter-marca">
+        </div>
+        <div class="form-group">
+          <label>Modello</label>
+          <input type="text" id="mi-inverter-modello">
+        </div>
+        <div class="form-group">
+          <label>Data installazione</label>
+          <input type="date" id="mi-inverter-data">
+        </div>
+      </div>
+    </div>
+    <div class="componente-box">
+      <div class="componente-label">Batteria (opzionale)</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Marca</label>
+          <input type="text" id="mi-batteria-marca">
+        </div>
+        <div class="form-group">
+          <label>Modello</label>
+          <input type="text" id="mi-batteria-modello">
+        </div>
+        <div class="form-group">
+          <label>Data installazione</label>
+          <input type="date" id="mi-batteria-data">
+        </div>
       </div>
     </div>
 
-    <div class="form-group">
-      <label>Note</label>
-      <textarea id="mi-note" rows="2"></textarea>
+    <!-- SEZIONE 4: attivazione (autorizzazione in su) -->
+    <div class="section-title">Dati di attivazione</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data allaccio</label>
+        <input type="date" id="mi-allaccio">
+      </div>
+      <div class="form-group">
+        <label>POD</label>
+        <input type="text" id="mi-pod" placeholder="IT001E...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Codice ditta ADM</label>
+        <input type="text" id="mi-adm" placeholder="Se officina elettrica">
+      </div>
     </div>
 
-    <div class="info-box" id="mi-scadenze-info" style="display:none">
-      <b>Scadenze applicate a questo impianto:</b>
-      <ul id="mi-scadenze-lista"></ul>
+    <!-- SEZIONE 5: tecnici -->
+    <div class="section-title">
+      Tecnici assegnati
+      <button type="button" class="btn-secondary btn-sm" onclick="apriAggiungiTecnico()">+ Assegna tecnico</button>
+    </div>
+    <div id="mi-tecnici-lista" class="tecnici-lista">
+      <div class="text-muted">Nessun tecnico assegnato (salva prima l'impianto)</div>
+    </div>
+
+    <!-- Note -->
+    <div class="section-title">Note</div>
+    <div class="form-group">
+      <textarea id="mi-note" rows="2"></textarea>
     </div>
 
     <div class="modal-actions">
@@ -198,15 +283,58 @@
   </div>
 </div>
 
+<!-- Modale assegna tecnico a impianto -->
+<div class="modal" id="modal-tec-assign">
+  <div class="modal-content">
+    <h2>Assegna tecnico</h2>
+    <div class="form-group">
+      <label>Tecnico *</label>
+      <select id="ta-tecnico"></select>
+      <div style="margin-top:4px"><a href="tecnici.html" target="_blank">Gestisci tecnici in una nuova scheda →</a></div>
+    </div>
+    <div class="form-group">
+      <label>Ruolo *</label>
+      <select id="ta-ruolo">
+        <option value="progettista">Progettista</option>
+        <option value="installatore">Installatore</option>
+        <option value="direttore_lavori">Direttore lavori</option>
+        <option value="taratura">Taratura</option>
+        <option value="manutenzione">Manutenzione</option>
+        <option value="altro">Altro</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Dal</label>
+        <input type="date" id="ta-dal">
+      </div>
+      <div class="form-group">
+        <label>Al (opzionale)</label>
+        <input type="date" id="ta-al">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="ta-note" rows="2"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="chiudiModal('modal-tec-assign')">Annulla</button>
+      <button class="btn-primary" onclick="confermaAssegnaTecnico()">Assegna</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modale scadenze impianto -->
 <div class="modal" id="modal-scadenze">
   <div class="modal-content modal-lg">
     <h2>Scadenze impianto <span id="ms-nome"></span></h2>
     <div id="ms-info" class="modal-info"></div>
-
     <div class="section-title">
       Scadenze attive
-      <button class="btn-secondary btn-sm" onclick="apriNuovaScadenza()">+ Nuova scadenza manuale</button>
+      <span>
+        <button class="btn-secondary btn-sm" onclick="rigeneraScadenze()">↻ Rigenera auto</button>
+        <button class="btn-secondary btn-sm" onclick="apriNuovaScadenza()">+ Nuova manuale</button>
+      </span>
     </div>
     <div class="table-wrap">
       <table class="tab-scadenze compact">
@@ -223,14 +351,13 @@
         <tbody id="ms-lista"></tbody>
       </table>
     </div>
-
     <div class="modal-actions">
       <button class="btn-secondary" onclick="chiudiModal('modal-scadenze')">Chiudi</button>
     </div>
   </div>
 </div>
 
-<!-- Modale modifica / nuova scadenza -->
+<!-- Modale modifica/nuova scadenza -->
 <div class="modal" id="modal-scad-edit">
   <div class="modal-content">
     <h2 id="mse-titolo">Modifica scadenza</h2>
