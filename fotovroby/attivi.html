@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Impianti · fotovroby</title>
+<title>Attivi · fotovroby</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -14,8 +14,8 @@
     <a href="scadenziario.html">Scadenziario</a>
     <a href="progetti.html">Progetti</a>
     <a href="autorizzazioni.html">Autorizzazioni</a>
-    <a href="attivi.html">Attivi</a>
-    <a href="impianti.html" class="active">Impianti</a>
+    <a href="attivi.html" class="active">Attivi</a>
+    <a href="impianti.html">Impianti</a>
     <a href="interventi.html">Interventi</a>
     <a href="clienti.html">Clienti</a>
     <a href="tecnici.html">Tecnici</a>
@@ -26,20 +26,19 @@
 <main>
   <div id="loading" class="loading">Caricamento...</div>
   <div id="content" style="display:none">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Impianti attivi</div><div class="value" id="kpi-tot">–</div></div>
+      <div class="kpi"><div class="label">kW totali</div><div class="value" id="kpi-kw">–</div></div>
+      <div class="kpi"><div class="label">BT</div><div class="value" id="kpi-bt">–</div></div>
+      <div class="kpi"><div class="label">MT</div><div class="value" id="kpi-mt">–</div></div>
+      <div class="kpi rosso"><div class="label">Scadenze scadute</div><div class="value" id="kpi-rosse">–</div></div>
+      <div class="kpi giallo"><div class="label">In arrivo</div><div class="value" id="kpi-giallo">–</div></div>
+    </div>
 
     <div class="card">
       <div class="toolbar">
-        <button class="btn-primary" onclick="apriNuovoImpianto()">+ Nuovo</button>
+        <button class="btn-primary" onclick="apriNuovoAttivo()">+ Nuovo attivo</button>
         <div class="filtri" style="flex:1">
-          <div class="filtro"><label>Fase</label>
-            <select id="f-fase">
-              <option value="">Tutte</option>
-              <option value="progettuale">Progetto</option>
-              <option value="autorizzazione">Autorizzazione</option>
-              <option value="attivo">Attivo</option>
-              <option value="dismesso">Dismesso</option>
-            </select>
-          </div>
           <div class="filtro"><label>Cliente</label><select id="f-cliente"><option value="">Tutti</option></select></div>
           <div class="filtro"><label>Fascia</label>
             <select id="f-fascia">
@@ -48,6 +47,9 @@
               <option value="F2 11,08-20 kW">F2</option>
               <option value="F3 oltre 20 kW">F3</option>
             </select>
+          </div>
+          <div class="filtro"><label>Conn.</label>
+            <select id="f-conn"><option value="">Tutte</option><option value="BT">BT</option><option value="MT">MT</option></select>
           </div>
           <div class="filtro"><label>Install.</label>
             <select id="f-install">
@@ -62,12 +64,6 @@
         </div>
         <div class="tot-info">Totale: <b id="cnt-tot">0</b></div>
       </div>
-      <div class="contatori" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-        <span class="chip chip-info" id="cnt-prog">0 progetti</span>
-        <span class="chip chip-warn" id="cnt-aut">0 autorizzazione</span>
-        <span class="chip chip-success" id="cnt-att">0 attivi</span>
-        <span class="chip" id="cnt-dis">0 dismessi</span>
-      </div>
     </div>
 
     <div class="card">
@@ -75,7 +71,7 @@
         <table class="tab-scadenze">
           <thead><tr>
             <th>Codice</th><th>Nome</th><th>Cliente</th><th>Potenza</th><th>Fascia</th>
-            <th>Install.</th><th>Conn.</th><th>Comune</th><th>Fase</th><th>Azioni</th>
+            <th>Install.</th><th>Conn.</th><th>Regime</th><th>Scadenze</th><th>Azioni</th>
           </tr></thead>
           <tbody id="tab-body"><tr><td colspan="10" class="loading">Caricamento...</td></tr></tbody>
         </table>
@@ -88,6 +84,6 @@
 <script src="js/auth.js"></script>
 <script src="js/partial-loader.js"></script>
 <script src="js/impianti-common.js"></script>
-<script src="js/impianti.js"></script>
+<script src="js/attivi.js"></script>
 </body>
 </html>

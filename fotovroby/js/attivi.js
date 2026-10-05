@@ -1,4 +1,4 @@
-// Pagina Impianti: tutti, con filtro fase
+// Pagina Attivi (fase = attivo)
 
 let impianti = [];
 let filtrati = [];
@@ -9,23 +9,16 @@ let filtrati = [];
   await loadPartial('partials/impianto-modal.html');
   await impCommonInit();
   await caricaDati();
-
-  const params = new URLSearchParams(location.search);
-  if (params.get('cliente')) document.getElementById('f-cliente').value = params.get('cliente');
-  if (params.get('fase')) document.getElementById('f-fase').value = params.get('fase');
-
-  ['f-fase','f-cliente','f-fascia','f-install'].forEach(id =>
+  ['f-cliente','f-fascia','f-conn','f-install'].forEach(id =>
     document.getElementById(id).addEventListener('change', applicaFiltri));
   document.getElementById('f-testo').addEventListener('input', debounce(applicaFiltri, 200));
-
-  applicaFiltri();
   document.getElementById('loading').style.display = 'none';
   document.getElementById('content').style.display = 'block';
 })();
 
 async function caricaDati() {
   const { data } = await sb.from('fotovroby_v_impianti_riepilogo')
-    .select('*').order('codice');
+    .select('*').eq('fase', 'attivo').order('codice');
   impianti = data || [];
 
   const clienti = [...new Map(impianti.map(i => [i.cliente_id, { id: i.cliente_id, nome: i.cliente_nome }])).values()]
@@ -37,26 +30,32 @@ async function caricaDati() {
     o.value = c.id; o.textContent = c.nome;
     sel.appendChild(o);
   });
+  applicaFiltri();
+  aggiornaKPI();
+}
 
-  // contatori di fase
-  const n = { progettuale:0, autorizzazione:0, attivo:0, dismesso:0 };
-  impianti.forEach(i => { if (n[i.fase] !== undefined) n[i.fase]++; });
-  document.getElementById('cnt-prog').textContent = n.progettuale + ' progetti';
-  document.getElementById('cnt-aut').textContent = n.autorizzazione + ' autorizzazione';
-  document.getElementById('cnt-att').textContent = n.attivo + ' attivi';
-  document.getElementById('cnt-dis').textContent = n.dismesso + ' dismessi';
+function aggiornaKPI() {
+  const kw = impianti.reduce((s,i) => s + Number(i.potenza_kw || 0), 0);
+  const bt = impianti.filter(i => i.connessione === 'BT').length;
+  const mt = impianti.filter(i => i.connessione === 'MT').length;
+  document.getElementById('kpi-tot').textContent = impianti.length;
+  document.getElementById('kpi-kw').textContent = kw.toLocaleString('it-IT', { maximumFractionDigits: 1 });
+  document.getElementById('kpi-bt').textContent = bt;
+  document.getElementById('kpi-mt').textContent = mt;
+  document.getElementById('kpi-rosse').textContent = impianti.reduce((s,i) => s + Number(i.n_scadenze_rosse || 0), 0);
+  document.getElementById('kpi-giallo').textContent = impianti.reduce((s,i) => s + (Number(i.n_scadenze_aperte || 0) - Number(i.n_scadenze_rosse || 0)), 0);
 }
 
 function applicaFiltri() {
-  const fase = document.getElementById('f-fase').value;
   const cli = document.getElementById('f-cliente').value;
   const fas = document.getElementById('f-fascia').value;
+  const con = document.getElementById('f-conn').value;
   const inst = document.getElementById('f-install').value;
   const txt = document.getElementById('f-testo').value.toLowerCase().trim();
   filtrati = impianti.filter(i => {
-    if (fase && i.fase !== fase) return false;
     if (cli && i.cliente_id !== cli) return false;
     if (fas && i.fascia !== fas) return false;
+    if (con && i.connessione !== con) return false;
     if (inst && i.tipo_installazione !== inst) return false;
     if (txt) {
       const hay = [i.codice, i.nome, i.cliente_nome, i.comune].join(' ').toLowerCase();
@@ -71,7 +70,7 @@ function applicaFiltri() {
 function render() {
   const tbody = document.getElementById('tab-body');
   if (!filtrati.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="loading">Nessun impianto</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="loading">Nessun impianto attivo</td></tr>';
     return;
   }
   tbody.innerHTML = filtrati.map(i => `
@@ -83,21 +82,26 @@ function render() {
       <td><span class="chip">${badgeFascia(i.fascia)}</span></td>
       <td>${installLabel(i.tipo_installazione)}</td>
       <td>${i.connessione}</td>
-      <td>${escapeHtml(i.comune || '–')}</td>
-      <td>${faseBadge(i.fase)}</td>
+      <td>${i.regime_cessione}</td>
+      <td>${badgeScadenze(i)}</td>
       <td class="col-azioni">
         <button class="btn-icon" onclick='impApriModifica("${i.id}", caricaDati)' title="Modifica">✎</button>
-        <button class="btn-icon" onclick='impApriScadenze("${i.id}")' title="Scadenze" ${i.fase === 'dismesso' ? 'disabled' : ''}>📋</button>
+        <button class="btn-icon" onclick='impApriScadenze("${i.id}")' title="Scadenze">📋</button>
       </td>
     </tr>
   `).join('');
 }
 
+function badgeScadenze(i) {
+  if (!i.n_scadenze_aperte) return '<span class="text-muted">–</span>';
+  if (i.n_scadenze_rosse > 0) return `<span class="chip chip-danger">${i.n_scadenze_rosse} / ${i.n_scadenze_aperte}</span>`;
+  return `<span class="chip chip-info">${i.n_scadenze_aperte}</span>`;
+}
 function installLabel(x) {
   if (!x) return '<span class="text-muted">–</span>';
   return ({tetto:'🏠', terra:'🌱', float:'💧', tracker:'☀️'}[x] || '') + ' ' + x;
 }
-function apriNuovoImpianto() { impApriNuovo('progettuale', caricaDati); }
+function apriNuovoAttivo() { impApriNuovo('attivo', caricaDati); }
 
-window.apriNuovoImpianto = apriNuovoImpianto;
+window.apriNuovoAttivo = apriNuovoAttivo;
 window.caricaDati = caricaDati;

@@ -1,0 +1,255 @@
+<!-- Modale impianto completa condivisa da progetti/autorizzazioni/attivi/impianti/dismessi -->
+<div class="modal" id="modal-impianto">
+  <div class="modal-content modal-xl">
+    <h2 id="mi-titolo">Nuovo impianto</h2>
+
+    <div class="fase-selector">
+      <label>Fase impianto</label>
+      <div class="fase-steps">
+        <button type="button" class="fase-step" data-fase="progettuale" onclick="setFase('progettuale')">1. Progettuale</button>
+        <button type="button" class="fase-step" data-fase="autorizzazione" onclick="setFase('autorizzazione')">2. Autorizzazione</button>
+        <button type="button" class="fase-step" data-fase="attivo" onclick="setFase('attivo')">3. Attivo</button>
+        <button type="button" class="fase-step" data-fase="dismesso" onclick="setFase('dismesso')">4. Dismesso</button>
+      </div>
+      <input type="hidden" id="mi-fase" value="progettuale">
+      <div class="fase-help" id="mi-fase-help"></div>
+      <div id="mi-fase-storico"></div>
+    </div>
+
+    <div class="section-title">Dati base</div>
+    <div class="form-row">
+      <div class="form-group"><label>Codice</label><input type="text" id="mi-codice" placeholder="Auto"></div>
+      <div class="form-group"><label>Cliente *</label><select id="mi-cliente" required></select></div>
+    </div>
+    <div class="form-group"><label>Nome impianto *</label><input type="text" id="mi-nome" required></div>
+    <div class="form-row">
+      <div class="form-group"><label>Indirizzo</label><input type="text" id="mi-indirizzo"></div>
+      <div class="form-group"><label>Comune</label><input type="text" id="mi-comune"></div>
+    </div>
+
+    <div class="section-title">Dati tecnici</div>
+    <div class="form-row">
+      <div class="form-group"><label>Potenza (kW) *</label><input type="number" id="mi-potenza" step="0.01" min="0.1" required oninput="impAnteprimaFascia()"></div>
+      <div class="form-group"><label>Fascia</label><div id="mi-fascia-preview" class="fascia-preview">—</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Tipo installazione</label>
+        <select id="mi-installazione">
+          <option value="">–</option>
+          <option value="tetto">Tetto</option>
+          <option value="terra">Terra</option>
+          <option value="float">Float</option>
+          <option value="tracker">Tracker</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Connessione *</label>
+        <select id="mi-connessione"><option value="BT">BT</option><option value="MT">MT</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Regime cessione *</label>
+        <select id="mi-regime"><option value="parziale">Parziale</option><option value="totale">Totale</option></select>
+      </div>
+      <div class="form-group"><label>Portale monitoraggio</label><input type="text" id="mi-monitoraggio"></div>
+    </div>
+
+    <!-- PROGETTO -->
+    <div class="section-title fase-section" id="sez-progetto">📐 Dati di progetto</div>
+    <div class="fase-section" data-sez="progetto">
+      <div class="form-row">
+        <div class="form-group"><label>Versione progetto</label><input type="text" id="mi-progetto-versione" placeholder="es. Rev.2"></div>
+        <div class="form-group"><label>Data stimata avvio lavori</label><input type="date" id="mi-progetto-avvio"></div>
+      </div>
+      <div class="form-group"><label>Importo preventivato (€)</label><input type="number" id="mi-progetto-importo" step="0.01" min="0"></div>
+      <div class="form-group"><label>Note progetto</label><textarea id="mi-progetto-note" rows="2"></textarea></div>
+    </div>
+
+    <!-- COMPONENTI -->
+    <div class="section-title fase-section" id="sez-componenti">⚡ Componenti principali</div>
+    <div class="fase-section" data-sez="componenti">
+      <div class="componente-box">
+        <div class="componente-label">Pannelli</div>
+        <div class="form-row">
+          <div class="form-group"><label>Marca</label><input type="text" id="mi-pannello-marca"></div>
+          <div class="form-group"><label>Modello</label><input type="text" id="mi-pannello-modello"></div>
+          <div class="form-group"><label>Data install.</label><input type="date" id="mi-pannello-data"></div>
+        </div>
+      </div>
+      <div class="componente-box">
+        <div class="componente-label">Inverter</div>
+        <div class="form-row">
+          <div class="form-group"><label>Marca</label><input type="text" id="mi-inverter-marca"></div>
+          <div class="form-group"><label>Modello</label><input type="text" id="mi-inverter-modello"></div>
+          <div class="form-group"><label>Data install.</label><input type="date" id="mi-inverter-data"></div>
+        </div>
+      </div>
+      <div class="componente-box">
+        <div class="componente-label">Batteria (opzionale)</div>
+        <div class="form-row">
+          <div class="form-group"><label>Marca</label><input type="text" id="mi-batteria-marca"></div>
+          <div class="form-group"><label>Modello</label><input type="text" id="mi-batteria-modello"></div>
+          <div class="form-group"><label>Data install.</label><input type="date" id="mi-batteria-data"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTORIZZAZIONE -->
+    <div class="section-title fase-section" id="sez-autorizzazione">📋 Pratiche autorizzative</div>
+    <div class="fase-section" data-sez="autorizzazione">
+      <div class="componente-box">
+        <div class="componente-label">TICA (preventivo connessione)</div>
+        <div class="form-row">
+          <div class="form-group"><label>Data invio</label><input type="date" id="mi-aut-tica-data"></div>
+          <div class="form-group"><label>N. pratica</label><input type="text" id="mi-aut-tica-num"></div>
+        </div>
+      </div>
+      <div class="componente-box">
+        <div class="componente-label">GSE</div>
+        <div class="form-row">
+          <div class="form-group"><label>Data invio</label><input type="date" id="mi-aut-gse-data"></div>
+          <div class="form-group"><label>N. convenzione</label><input type="text" id="mi-aut-gse-num"></div>
+        </div>
+      </div>
+      <div class="componente-box">
+        <div class="componente-label">Comune (SCIA / Permesso)</div>
+        <div class="form-row">
+          <div class="form-group"><label>Data presentazione</label><input type="date" id="mi-aut-scia-data"></div>
+          <div class="form-group"><label>N. protocollo</label><input type="text" id="mi-aut-scia-num"></div>
+        </div>
+      </div>
+      <div class="componente-box">
+        <div class="componente-label">Vigili del Fuoco</div>
+        <div class="form-row">
+          <div class="form-group"><label>Data pratica</label><input type="date" id="mi-aut-vvf-data"></div>
+          <div class="form-group"><label>Riferimento</label><input type="text" id="mi-aut-vvf-num"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Soprintendenza</label><input type="text" id="mi-aut-soprintendenza" placeholder="Non richiesta / autorizzata / protocollo"></div>
+        <div class="form-group"><label>Catasto (Docfa)</label><input type="text" id="mi-aut-catasto"></div>
+      </div>
+      <div class="form-group"><label>Note autorizzazioni</label><textarea id="mi-aut-note" rows="2"></textarea></div>
+    </div>
+
+    <!-- ATTIVAZIONE -->
+    <div class="section-title fase-section" id="sez-attivazione">⚡ Dati attivazione</div>
+    <div class="fase-section" data-sez="attivazione">
+      <div class="form-row">
+        <div class="form-group"><label>Data allaccio</label><input type="date" id="mi-allaccio"></div>
+        <div class="form-group"><label>POD</label><input type="text" id="mi-pod" placeholder="IT001E..."></div>
+      </div>
+      <div class="form-group"><label>Codice ditta ADM</label><input type="text" id="mi-adm"></div>
+    </div>
+
+    <!-- DISMISSIONE -->
+    <div class="section-title fase-section" id="sez-dismissione">🚫 Dati dismissione</div>
+    <div class="fase-section" data-sez="dismissione">
+      <div class="form-row">
+        <div class="form-group"><label>Data dismissione *</label><input type="date" id="mi-dism-data"></div>
+        <div class="form-group"><label>Comunicazione GSE</label><input type="date" id="mi-dism-gse"></div>
+      </div>
+      <div class="form-group"><label>Motivo dismissione</label><input type="text" id="mi-dism-motivo"></div>
+      <div class="form-group"><label>Smaltimento (RAEE)</label><input type="text" id="mi-dism-smalt"></div>
+      <div class="form-group"><label>Note dismissione</label><textarea id="mi-dism-note" rows="2"></textarea></div>
+    </div>
+
+    <!-- TECNICI -->
+    <div class="section-title">
+      👥 Tecnici assegnati
+      <button type="button" class="btn-secondary btn-sm" onclick="impApriAggiungiTecnico()">+ Assegna</button>
+    </div>
+    <div id="mi-tecnici-lista" class="tecnici-lista"></div>
+
+    <!-- NOTE -->
+    <div class="section-title">📝 Note generali</div>
+    <div class="form-group"><textarea id="mi-note" rows="2"></textarea></div>
+
+    <div class="modal-actions">
+      <button class="btn-danger" id="mi-elimina" onclick="impElimina()" style="margin-right:auto;display:none">Elimina</button>
+      <button class="btn-secondary" onclick="chiudiModal('modal-impianto')">Annulla</button>
+      <button class="btn-primary" onclick="impSalva()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal-tec-assign">
+  <div class="modal-content">
+    <h2>Assegna tecnico</h2>
+    <div class="form-group"><label>Tecnico *</label><select id="ta-tecnico"></select>
+      <div style="margin-top:4px"><a href="tecnici.html" target="_blank">Gestisci tecnici →</a></div>
+    </div>
+    <div class="form-group"><label>Ruolo *</label>
+      <select id="ta-ruolo">
+        <option value="progettista">Progettista</option>
+        <option value="installatore">Installatore</option>
+        <option value="direttore_lavori">Direttore lavori</option>
+        <option value="taratura">Taratura</option>
+        <option value="manutenzione">Manutenzione</option>
+        <option value="altro">Altro</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Dal</label><input type="date" id="ta-dal"></div>
+      <div class="form-group"><label>Al</label><input type="date" id="ta-al"></div>
+    </div>
+    <div class="form-group"><label>Note</label><textarea id="ta-note" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="chiudiModal('modal-tec-assign')">Annulla</button>
+      <button class="btn-primary" onclick="impConfermaAssegnaTecnico()">Assegna</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal-scadenze">
+  <div class="modal-content modal-lg">
+    <h2>Scadenze <span id="ms-nome"></span></h2>
+    <div id="ms-info" class="modal-info"></div>
+    <div class="section-title">
+      Scadenze attive
+      <span>
+        <button class="btn-secondary btn-sm" onclick="impRigeneraScadenze()">↻ Rigenera auto</button>
+        <button class="btn-secondary btn-sm" onclick="impApriNuovaScadenza()">+ Manuale</button>
+      </span>
+    </div>
+    <div class="table-wrap">
+      <table class="tab-scadenze compact">
+        <thead><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th>Stato</th><th>Origine</th><th>Azioni</th></tr></thead>
+        <tbody id="ms-lista"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions"><button class="btn-secondary" onclick="chiudiModal('modal-scadenze')">Chiudi</button></div>
+  </div>
+</div>
+
+<div class="modal" id="modal-scad-edit">
+  <div class="modal-content">
+    <h2 id="mse-titolo">Scadenza</h2>
+    <div class="form-group"><label>Descrizione *</label><input type="text" id="mse-desc"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Categoria</label>
+        <select id="mse-cat">
+          <option value="manutenzione">Manutenzione</option>
+          <option value="verifica">Verifica</option>
+          <option value="adempimento">Adempimento</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Data *</label><input type="date" id="mse-data"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Preavviso (gg)</label><input type="number" id="mse-preavviso" value="30"></div>
+      <div class="form-group"><label>Stato</label>
+        <select id="mse-stato">
+          <option value="aperta">Aperta</option>
+          <option value="pianificata">Pianificata</option>
+          <option value="annullata">Annullata</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Note</label><textarea id="mse-note" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="mse-elimina" onclick="impEliminaScadenza()" style="margin-right:auto;display:none">Elimina</button>
+      <button class="btn-secondary" onclick="chiudiModal('modal-scad-edit')">Annulla</button>
+      <button class="btn-primary" onclick="impSalvaScadenza()">Salva</button>
+    </div>
+  </div>
+</div>

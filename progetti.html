@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Progetti · fotovroby</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>fotovroby</h1>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="scadenziario.html">Scadenziario</a>
+    <a href="progetti.html" class="active">Progetti</a>
+    <a href="autorizzazioni.html">Autorizzazioni</a>
+    <a href="attivi.html">Attivi</a>
+    <a href="impianti.html">Impianti</a>
+    <a href="interventi.html">Interventi</a>
+    <a href="clienti.html">Clienti</a>
+    <a href="tecnici.html">Tecnici</a>
+    <span class="user-info" id="user-nome"></span>
+    <button onclick="logout()">Esci</button>
+  </nav>
+</header>
+<main>
+  <div id="loading" class="loading">Caricamento...</div>
+  <div id="content" style="display:none">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Progetti totali</div><div class="value" id="kpi-tot">–</div></div>
+      <div class="kpi"><div class="label">kW previsti</div><div class="value" id="kpi-kw">–</div></div>
+      <div class="kpi"><div class="label">In corso &gt; 6 mesi</div><div class="value" id="kpi-vecchi">–</div></div>
+      <div class="kpi"><div class="label">Importo totale (€)</div><div class="value" id="kpi-importo">–</div></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn-primary" onclick="apriNuovoProgetto()">+ Nuovo progetto</button>
+        <div class="filtri" style="flex:1">
+          <div class="filtro"><label>Cliente</label><select id="f-cliente"><option value="">Tutti</option></select></div>
+          <div class="filtro"><label>Cerca</label><input type="text" id="f-testo" placeholder="Codice, nome..."></div>
+        </div>
+        <div class="tot-info">Totale: <b id="cnt-tot">0</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="tab-scadenze">
+          <thead><tr>
+            <th>Codice</th><th>Nome</th><th>Cliente</th><th>Potenza</th><th>Fascia</th>
+            <th>Install.</th><th>In fase da</th><th>Importo</th><th>Avvio stimato</th><th>Azioni</th>
+          </tr></thead>
+          <tbody id="tab-body"><tr><td colspan="10" class="loading">Caricamento...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/partial-loader.js"></script>
+<script src="js/impianti-common.js"></script>
+<script src="js/progetti.js"></script>
+</body>
+</html>
