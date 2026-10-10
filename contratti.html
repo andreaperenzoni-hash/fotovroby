@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contratti · fotovroby</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>fotovroby</h1>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="contratti.html" class="active">Contratti</a>
+    <a href="scadenziario.html">Scadenziario</a>
+    <a href="progetti.html">Progetti</a>
+    <a href="autorizzazioni.html">Autorizzazioni</a>
+    <a href="attivi.html">Attivi</a>
+    <a href="impianti.html">Impianti</a>
+    <a href="interventi.html">Interventi</a>
+    <a href="clienti.html">Clienti</a>
+    <a href="tecnici.html">Tecnici</a>
+    <span class="user-info" id="user-nome"></span>
+    <button onclick="logout()">Esci</button>
+  </nav>
+</header>
+
+<main>
+  <div id="loading" class="loading">Caricamento...</div>
+  <div id="content" style="display:none">
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Contratti attivi</div><div class="value" id="kpi-attivi">–</div></div>
+      <div class="kpi giallo"><div class="label">Scadono entro 90 gg</div><div class="value" id="kpi-90">–</div></div>
+      <div class="kpi rosso"><div class="label">Scaduti da rinnovare</div><div class="value" id="kpi-scaduti">–</div></div>
+      <div class="kpi"><div class="label">Canoni annui totali</div><div class="value" id="kpi-canoni">– €</div></div>
+      <div class="kpi"><div class="label">kW sotto contratto</div><div class="value" id="kpi-kw">–</div></div>
+      <div class="kpi"><div class="label">Impianti senza contratto</div><div class="value" id="kpi-nocontratto">–</div></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn-primary" onclick="apriNuovo()">+ Nuovo contratto</button>
+        <div class="filtri" style="flex:1">
+          <div class="filtro"><label>Stato</label>
+            <select id="f-stato">
+              <option value="">Tutti</option>
+              <option value="attivo" selected>Attivi</option>
+              <option value="in_rinnovo">In rinnovo</option>
+              <option value="bozza">Bozza</option>
+              <option value="scaduto">Scaduti</option>
+              <option value="rinnovato">Rinnovati</option>
+              <option value="disdetto">Disdetti</option>
+            </select>
+          </div>
+          <div class="filtro"><label>Semaforo rinnovo</label>
+            <select id="f-semaforo">
+              <option value="">Tutti</option>
+              <option value="scaduto_de_facto">Rosso (scaduti)</option>
+              <option value="in_scadenza_30">Giallo scuro (≤30gg)</option>
+              <option value="in_scadenza_90">Giallo (≤90gg)</option>
+              <option value="attivo">Verde</option>
+            </select>
+          </div>
+          <div class="filtro"><label>Cliente</label><select id="f-cliente"><option value="">Tutti</option></select></div>
+          <div class="filtro"><label>Cerca</label><input type="text" id="f-testo" placeholder="Numero, oggetto, note..."></div>
+        </div>
+        <div class="tot-info">Totale: <b id="cnt-tot">0</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="tab-scadenze">
+          <thead><tr>
+            <th>Numero</th>
+            <th>Cliente</th>
+            <th>Oggetto</th>
+            <th>Impianti</th>
+            <th>Canone</th>
+            <th>Visite/anno</th>
+            <th>Periodo</th>
+            <th>Scade tra</th>
+            <th>Stato</th>
+            <th>Azioni</th>
+          </tr></thead>
+          <tbody id="tab-body">
+            <tr><td colspan="10" class="loading">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Modale contratto -->
+<div class="modal" id="modal-contratto">
+  <div class="modal-content modal-xl">
+    <h2 id="mc-titolo">Nuovo contratto</h2>
+
+    <div class="section-title">Dati contratto</div>
+    <div class="form-row">
+      <div class="form-group"><label>Numero</label>
+        <input type="text" id="mc-numero" placeholder="Auto: CTR-2026-NNN">
+      </div>
+      <div class="form-group"><label>Stato *</label>
+        <select id="mc-stato">
+          <option value="bozza">Bozza</option>
+          <option value="attivo" selected>Attivo</option>
+          <option value="in_rinnovo">In rinnovo</option>
+          <option value="rinnovato">Rinnovato</option>
+          <option value="scaduto">Scaduto</option>
+          <option value="disdetto">Disdetto</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group"><label>Cliente *</label>
+      <select id="mc-cliente" required onchange="caricaImpiantiCliente()"></select>
+    </div>
+
+    <div class="form-group"><label>Oggetto</label>
+      <input type="text" id="mc-oggetto" placeholder='es. "Manutenzione ordinaria impianti FV"'>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Data firma</label>
+        <input type="date" id="mc-firma">
+      </div>
+      <div class="form-group"><label>Tipologia</label>
+        <select id="mc-tipologia">
+          <option value="base">Base</option>
+          <option value="completo">Completo</option>
+          <option value="premium">Premium</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Data inizio *</label>
+        <input type="date" id="mc-inizio" required>
+      </div>
+      <div class="form-group"><label>Data fine *</label>
+        <input type="date" id="mc-fine" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Canone annuo (€)</label>
+        <input type="number" id="mc-canone" step="0.01" min="0">
+      </div>
+      <div class="form-group"><label>Visite incluse per anno</label>
+        <input type="number" id="mc-visite" min="0" value="1">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Preavviso disdetta (mesi)</label>
+        <input type="number" id="mc-preavviso" min="0" value="3">
+      </div>
+      <div class="form-group" style="padding-top:28px">
+        <label><input type="checkbox" id="mc-rinnovo-auto"> Rinnovo automatico</label>
+      </div>
+    </div>
+
+    <div class="form-group"><label>Commerciale di riferimento</label>
+      <input type="text" id="mc-commerciale" placeholder="Nome commerciale">
+    </div>
+
+    <div class="section-title">
+      Impianti coperti dal contratto
+      <small class="text-muted">(solo impianti attivi del cliente selezionato)</small>
+    </div>
+    <div id="mc-impianti-lista" class="impianti-checklist">
+      <div class="text-muted">Seleziona prima un cliente</div>
+    </div>
+
+    <div class="section-title">Note</div>
+    <div class="form-group">
+      <textarea id="mc-note" rows="2"></textarea>
+    </div>
+
+    <div id="mc-info-scadenze" class="info-box" style="display:none">
+      <b>ℹ️ Al salvataggio verranno:</b>
+      <ul>
+        <li>Generate automaticamente le scadenze commerciali di rinnovo (-90, -30, -7 gg)</li>
+        <li>Attivate le scadenze contrattuali (manutenzione annuale) per gli impianti selezionati</li>
+      </ul>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-danger" id="mc-elimina" onclick="eliminaContratto()" style="margin-right:auto;display:none">Elimina</button>
+      <button class="btn-secondary" id="mc-rinnova" onclick="rinnovaContratto()" style="margin-right:auto;display:none">↻ Rinnova</button>
+      <button class="btn-secondary" onclick="chiudiModal('modal-contratto')">Annulla</button>
+      <button class="btn-primary" onclick="salvaContratto()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/contratti.js"></script>
+</body>
+</html>
